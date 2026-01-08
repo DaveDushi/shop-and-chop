@@ -1,184 +1,291 @@
-# Dynamous Kiro Hackathon Quickstart Template
+# Shop & Chop 🛒🔪
 
-🚀 **Your starting point for the Dynamous and Kiro Hackathon** - A comprehensive template with pre-configured Kiro CLI setup, development workflows, and submission guidelines.
+**Shop smart, chop smarter** - A smart meal planner and shopping list generator that saves you 2+ hours weekly on meal planning and grocery preparation.
 
-> **📖 New to Kiro?** Check out [kiro-guide.md](kiro-guide.md) to quickly get accustomed to how Kiro works and understand its unique features for the hackathon.
+## 🎯 Project Overview
 
-## About the Hackathon
+Shop & Chop is a full-stack web application that eliminates the tedious task of meal planning by providing:
 
-The **Kiro Hackathon** is a coding competition where developers build real-world applications using the Kiro CLI. Show off your AI-powered development skills and compete for **$17,000 in prizes**.
+- **Weekly Meal Planning**: Drag-and-drop interface for planning meals on a calendar
+- **Recipe Database**: 100+ curated recipes with search and dietary filtering
+- **Smart Shopping Lists**: Auto-generated lists organized by grocery store sections
+- **Mobile PWA**: Offline-capable shopping lists for in-store use
+- **User Preferences**: Household size, dietary restrictions, and favorite cuisines
 
-- **📅 Dates**: January 5-23, 2026
-- **💰 Prize Pool**: $17,000 across 10 winners
-- **🎯 Theme**: Open - build anything that solves a real problem
-- **🔗 More Info**: [dynamous.ai/kiro-hackathon](https://dynamous.ai/kiro-hackathon)
+## 🚀 Quick Start
 
-## What's Included
+### Prerequisites
 
-This template provides everything you need to get started:
+- Node.js 18+ (LTS recommended)
+- PostgreSQL 14+
+- npm or yarn
 
-- **📋 Steering Documents**: Pre-configured project templates (product.md, tech.md, structure.md)
-- **⚡ Custom Prompts**: 11 powerful development workflow prompts
-- **📖 Examples**: Sample README and DEVLOG showing best practices
-- **🏆 Hackathon Tools**: Specialized code review prompt for submission evaluation
+### 1. Clone and Install
 
-## Quick Start
-
-### 1. Clone This Template
 ```bash
-git clone https://github.com/coleam00/dynamous-kiro-hackathon
-cd dynamous-kiro-hackathon
+git clone <repository-url>
+cd shop-and-chop
+npm run setup
 ```
 
-### 2. Run the Setup Wizard
+### 2. Database Setup
+
 ```bash
-@quickstart
+# Start PostgreSQL (using Docker)
+docker-compose up -d postgres
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Initialize database
+npm run db:setup
 ```
 
-This assumes you already have Kiro CLI installed and that you started with the `kiro-cli` command in your terminal.
+### 3. Start Development Servers
 
-This interactive wizard will:
-- ✅ Fill out your steering documents with project details
-- ✅ Configure your development workflow
-- ✅ Set up Kiro CLI for your specific project
-- ✅ Explain all available prompts and features
+```bash
+# Start both client and server
+npm run dev
 
-### 3. Start Building
-Your project is now configured! Use these core prompts:
-- **`@prime`** - Load project context
-- **`@plan-feature`** - Plan new features
-- **`@execute`** - Implement plans systematically
-- **`@code-review`** - Review code quality
+# Or start individually
+npm run dev:client  # Frontend on http://localhost:3000
+npm run dev:server  # Backend on http://localhost:3001
+```
 
-**Note:** Your typical workflow will be `@prime` → `@plan-feature` → `@execute` → `@code-review`, but feel free to change it however you want. These commands may require additional details (like what feature to plan or which plan file to execute), but Kiro will ask for these parameters after you invoke the command.
+### 4. Access the Application
 
-## Development Workflow (Customize this However You Want!)
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:3001/api
+- **Health Check**: http://localhost:3001/health
 
-### Initial Setup (One-Time)
-1. **Complete setup**: Run `@quickstart` to configure your project
+## 🧪 Demo Account
 
-### Core Development Cycle (Every Feature/Session)
+Use these credentials to test the application:
 
-### Phase 1: Setup & Planning
-1. **Load context**: Use `@prime` to understand your codebase
-2. **Plan features**: Use `@plan-feature` for comprehensive planning
+- **Email**: test@shopandchop.com
+- **Password**: TestPass123
 
-### Phase 2: Build & Iterate
-1. **Implement**: Use `@execute` to build features systematically
-2. **Review**: Use `@code-review` to maintain code quality
-3. **Document**: Update your DEVLOG.md as you work
-4. **Optimize**: Customize your `.kiro/` configuration for your workflow
+## 📁 Project Structure
 
-### Phase 3: Submission Preparation
-1. **Final review**: Run `@code-review-hackathon` for submission evaluation
-2. **Polish documentation**: Ensure README.md and DEVLOG.md are complete
-3. **Verify requirements**: Check all submission criteria are met
+```
+shop-and-chop/
+├── client/                 # React frontend (Vite + TypeScript)
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/         # Page-level components
+│   │   ├── services/      # API calls and external services
+│   │   ├── hooks/         # Custom React hooks
+│   │   ├── types/         # TypeScript type definitions
+│   │   └── styles/        # CSS and styling
+│   └── public/            # Static assets and PWA manifest
+├── server/                # Node.js backend (Express + TypeScript)
+│   ├── src/
+│   │   ├── controllers/   # Route handlers and business logic
+│   │   ├── services/      # Business logic services
+│   │   ├── middleware/    # Express middleware functions
+│   │   ├── routes/        # API route definitions
+│   │   └── utils/         # Server-side utilities
+│   └── prisma/            # Database schema and migrations
+└── docs/                  # Project documentation
+```
 
-## Submission Requirements
+## 🛠 Technology Stack
 
-Your submission will be judged on these criteria (100 points total):
+### Frontend
+- **React 18** with TypeScript for type-safe UI development
+- **Vite** for fast development and optimized builds
+- **Tailwind CSS** for utility-first styling
+- **React Router 6** for client-side routing
+- **React Hook Form** for form handling
+- **React DnD** for drag-and-drop functionality
+- **PWA** capabilities for mobile offline access
 
-### Application Quality (40 points)
-- **Functionality & Completeness** (15 pts): Does it work as intended?
-- **Real-World Value** (15 pts): Does it solve a genuine problem?
-- **Code Quality** (10 pts): Is the code well-structured and maintainable?
+### Backend
+- **Node.js 18+** with Express.js for API development
+- **TypeScript** for type safety across the stack
+- **Prisma ORM** with PostgreSQL for database management
+- **JWT** authentication with bcrypt password hashing
+- **Joi** for request validation
+- **Rate limiting** and security middleware
 
-### Kiro CLI Usage (20 points)
-- **Effective Use of Features** (10 pts): How well did you leverage Kiro CLI?
-- **Custom Commands Quality** (7 pts): Quality of your custom prompts
-- **Workflow Innovation** (3 pts): Creative use of Kiro CLI features
+### Database
+- **PostgreSQL 14+** for structured data storage
+- **Prisma** for type-safe database operations
+- **Database seeding** with 100+ sample recipes
 
-### Documentation (20 points)
-- **Completeness** (9 pts): All required documentation present
-- **Clarity** (7 pts): Easy to understand and follow
-- **Process Transparency** (4 pts): Clear development process documentation
+## 📊 API Endpoints
 
-### Innovation (15 points)
-- **Uniqueness** (8 pts): Original approach or solution
-- **Creative Problem-Solving** (7 pts): Novel technical solutions
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `GET /api/auth/profile` - Get user profile
+- `PUT /api/auth/profile` - Update user profile
 
-### Presentation (5 points)
-- **Demo Video** (3 pts): Clear demonstration of your project
-- **README** (2 pts): Professional project overview
+### Recipes
+- `GET /api/recipes` - Get recipes with search/filters
+- `GET /api/recipes/:id` - Get recipe details
+- `POST /api/recipes/:id/favorite` - Toggle recipe favorite
 
-## Required Documentation
+### Meal Plans
+- `GET /api/meal-plans` - Get user's meal plans
+- `POST /api/meal-plans` - Create new meal plan
+- `GET /api/meal-plans/:id` - Get meal plan details
+- `PUT /api/meal-plans/:id` - Update meal plan
+- `DELETE /api/meal-plans/:id` - Delete meal plan
+- `GET /api/meal-plans/:id/shopping-list` - Generate shopping list
 
-Ensure these files are complete and high-quality:
+### Users
+- `GET /api/users/favorites` - Get user's favorite recipes
 
-### README.md
-- Clear project description and value proposition
-- Prerequisites and setup instructions
-- Architecture overview and key components
-- Usage examples and troubleshooting
+## 🧪 Testing
 
-*There's a lot of freedom for how you can structure this. Just make sure that it's easy for someone viewing this to know exactly what your project is about and how to run it themselves. This is the main criteria that explains the project clearly and how to test it in a local environment.*
+```bash
+# Run all tests
+npm test
 
-### DEVLOG.md
-- Development timeline with key milestones
-- Technical decisions and rationale
-- Challenges faced and solutions implemented
-- Time tracking and Kiro CLI usage statistics
+# Run client tests
+npm run test:client
 
-*There's a lot of freedom in how you structure this too. It's up to you how you want to document your timeline, milestones, decisions made, challenges you encounter, and all those kinds of things. Feel free to use Kiro to help you maintain your devlog as you're working on the project. Hint: create a Kiro prompt to help you update your log based on what's happening.*
+# Run server tests
+npm run test:server
 
-### .kiro/ Directory
-- **Steering documents**: Customized for your project
-- **Custom prompts**: Workflow-specific commands
-- **Configuration**: Optimized for your development process
+# Run tests in watch mode
+npm run test:watch
+```
 
-*This template provides a good starting point with prompts, and the wizard helps you set up your initial steering documents. However, it's encouraged for you to continue to customize things and refine it as you're working on your project.*
+## 🚀 Deployment
 
-## Available Prompts
+### Build for Production
 
-This template includes 11 powerful development prompts:
+```bash
+npm run build
+```
 
-### Core Development
-- **`@prime`** - Load comprehensive project context
-- **`@plan-feature`** - Create detailed implementation plans
-- **`@execute`** - Execute plans with systematic task management
-- **`@quickstart`** - Interactive project setup wizard
+### Environment Variables
 
-### Quality Assurance
-- **`@code-review`** - Technical code review for quality and bugs
-- **`@code-review-hackathon`** - Hackathon submission evaluation
-- **`@code-review-fix`** - Fix issues found in code reviews
-- **`@system-review`** - Analyze implementation vs plan
+Required environment variables for production:
 
-### Documentation & Planning
-- **`@create-prd`** - Generate Product Requirements Documents
-- **`@execution-report`** - Generate implementation reports
-- **`@rca`** - Root cause analysis for issues
-- **`@implement-fix`** - Implement fixes based on analysis
+```env
+# Database
+DATABASE_URL=postgresql://username:password@host:port/database
 
-## Examples
+# JWT Secret (use a strong, random key)
+JWT_SECRET=your-super-secret-jwt-key
 
-Check the `examples/` folder for:
-- **README.md**: Professional project documentation example
-- **DEVLOG.md**: Comprehensive development log example
+# Server Configuration
+PORT=3001
+NODE_ENV=production
 
-These examples show the level of detail and professionalism expected for hackathon submissions.
+# Client Configuration
+VITE_API_URL=https://your-api-domain.com/api
+```
 
-## Tips for Success
+### Docker Deployment
 
-### Maximize Your Score
-1. **Use Kiro CLI extensively** - It's 20% of your score
-2. **Document everything** - Process documentation is 20% of your score
-3. **Build something useful** - Real-world value is heavily weighted
-4. **Optimize your workflow** - Custom prompts and steering documents matter
+```bash
+# Build and start all services
+docker-compose up -d
 
-### Development Best Practices
-- **Start with `@quickstart`** to set up your foundation properly
-- **Use `@prime`** at the start of every new conversation to quickly catch the coding assistant up to speed on what has been built in the project already
-- **Update your DEVLOG.md** continuously, not just at the end
-- **Customize your `.kiro/` configuration** as you learn your workflow
-- **Run `@code-review-hackathon`** periodically to compare your project against the judging rubric and before submitting
+# View logs
+docker-compose logs -f
 
-## Getting Help
+# Stop services
+docker-compose down
+```
 
-- **Kiro CLI Documentation**: [kiro.dev/docs/cli](https://kiro.dev/docs/cli)
-- **Hackathon Community**: Join the Dynamous community for support
-- **Built-in Help**: Use `/help` in Kiro CLI for command assistance
+## 🎨 Features
+
+### ✅ Implemented
+- [x] User authentication (register/login/logout)
+- [x] JWT-based security with password hashing
+- [x] Database schema with Prisma ORM
+- [x] Recipe database with 100+ seeded recipes
+- [x] API endpoints for all core functionality
+- [x] Responsive React frontend with Tailwind CSS
+- [x] Shopping list generation algorithm
+- [x] PWA configuration for mobile use
+- [x] Form validation and error handling
+- [x] Loading states and user feedback
+
+### 🚧 In Development
+- [ ] Drag-and-drop meal planning calendar
+- [ ] Recipe browsing with search and filters
+- [ ] Shopping list UI with checkable items
+- [ ] User profile management
+- [ ] Recipe favorites functionality
+- [ ] Mobile-optimized shopping experience
+
+### 🔮 Future Enhancements
+- [ ] Recipe image uploads
+- [ ] Nutritional information
+- [ ] Grocery store integration
+- [ ] Social sharing features
+- [ ] Recipe recommendations
+- [ ] Meal prep scheduling
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📝 Development Scripts
+
+```bash
+# Root level scripts
+npm run dev          # Start both client and server
+npm run build        # Build both client and server
+npm run test         # Run all tests
+npm run setup        # Install all dependencies
+
+# Database scripts
+npm run db:setup     # Generate Prisma client, push schema, and seed
+npm run db:reset     # Reset database and re-seed
+
+# Individual service scripts
+npm run dev:client   # Start client development server
+npm run dev:server   # Start server development server
+npm run build:client # Build client for production
+npm run build:server # Build server for production
+```
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Database Connection Error**
+   - Ensure PostgreSQL is running
+   - Check DATABASE_URL in .env file
+   - Run `npm run db:setup` to initialize
+
+2. **Port Already in Use**
+   - Change PORT in .env file
+   - Kill existing processes on ports 3000/3001
+
+3. **Build Errors**
+   - Clear node_modules and reinstall: `rm -rf node_modules && npm install`
+   - Check TypeScript errors: `npm run build`
+
+### Getting Help
+
+- Check the [Issues](../../issues) page for known problems
+- Create a new issue with detailed error information
+- Include your environment details (Node.js version, OS, etc.)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Recipe data curated from various open-source collections
+- Icons provided by [Lucide React](https://lucide.dev/)
+- UI components inspired by modern design systems
+- Built with love for efficient meal planning 💚
 
 ---
 
-**Ready to build something amazing?** Run `@quickstart` and let's get started! 🚀
+**Shop & Chop** - Making meal planning effortless, one week at a time! 🍽️

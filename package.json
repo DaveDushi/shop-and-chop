@@ -1,0 +1,30 @@
+{
+  "name": "shop-and-chop",
+  "version": "1.0.0",
+  "description": "Smart meal planner and shopping list generator - Shop smart, chop smarter",
+  "private": true,
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build": "npm run build:client && npm run build:server",
+    "build:client": "cd client && npm run build",
+    "build:server": "cd server && npm run build",
+    "test": "npm run test:client && npm run test:server",
+    "test:client": "cd client && npm test",
+    "test:server": "cd server && npm test",
+    "setup": "npm install && cd client && npm install && cd ../server && npm install",
+    "db:setup": "cd server && npx prisma generate && npx prisma db push && npx prisma db seed",
+    "db:reset": "cd server && npx prisma db push --force-reset && npx prisma db seed"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
