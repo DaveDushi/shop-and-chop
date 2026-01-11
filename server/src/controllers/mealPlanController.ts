@@ -9,6 +9,39 @@ export const getMealPlans = asyncHandler(async (req: AuthenticatedRequest, res: 
     throw createError('User not authenticated', 401);
   }
 
+  const { weekStart } = req.query;
+
+  // If weekStart is provided, get meal plan for specific week
+  if (weekStart) {
+    const weekStartDate = new Date(weekStart as string);
+    const mealPlan = await prisma.mealPlan.findUnique({
+      where: {
+        userId_weekStartDate: {
+          userId: req.user.userId,
+          weekStartDate
+        }
+      },
+      include: {
+        meals: {
+          include: {
+            recipe: {
+              include: {
+                ingredients: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!mealPlan) {
+      throw createError('Meal plan not found for this week', 404);
+    }
+
+    return res.json({ mealPlan });
+  }
+
+  // Otherwise, get all meal plans for user
   const mealPlans = await prisma.mealPlan.findMany({
     where: { userId: req.user.userId },
     include: {

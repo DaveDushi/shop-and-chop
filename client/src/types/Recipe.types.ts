@@ -6,23 +6,38 @@ export interface Ingredient {
   category: string;
 }
 
+export interface NutritionInfo {
+  calories?: number;
+  protein?: number;
+  carbs?: number;
+  fat?: number;
+  fiber?: number;
+  sugar?: number;
+}
+
 export interface Recipe {
   id: string;
-  title: string;
-  description?: string;
-  cuisine: string;
+  name: string;
+  description: string;
+  imageUrl?: string;
+  prepTime: number;
   cookTime: number;
   servings: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   dietaryTags: string[];
   ingredients: Ingredient[];
   instructions: string[];
-  imageUrl?: string;
-  _count: {
+  nutritionInfo?: NutritionInfo;
+  rating?: number;
+  createdBy: string;
+  // Legacy fields for backward compatibility
+  title?: string;
+  cuisine?: string;
+  _count?: {
     favoritedBy: number;
   };
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface RecipeFilters {
