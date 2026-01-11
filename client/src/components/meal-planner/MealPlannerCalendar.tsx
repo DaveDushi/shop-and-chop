@@ -7,7 +7,6 @@ import { useAccessibleDragDrop } from '../../hooks/useAccessibleDragDrop';
 import { useShoppingList } from '../../hooks/useShoppingList';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
-import { RecipeSidebar } from './RecipeSidebar';
 import { DragLayer } from './DragLayer';
 import { RecipeDetailModal } from './RecipeDetailModal';
 import { ShoppingListModal } from './ShoppingListModal';
@@ -23,11 +22,6 @@ interface MealPlannerCalendarProps {
 export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
   onMealPlanChange,
 }) => {
-  // Auto-collapse sidebar on mobile by default
-  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(
-    typeof window !== 'undefined' && window.innerWidth < 768
-  );
-
   // Recipe detail modal state
   const [selectedRecipe, setSelectedRecipe] = React.useState<Recipe | null>(null);
   const [selectedMeal, setSelectedMeal] = React.useState<any | null>(null); // Store the meal that was clicked
@@ -129,24 +123,6 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
       return () => clearTimeout(timer);
     }
   }, [mealPlan, announce]);
-
-  // Handle window resize to auto-collapse sidebar on mobile
-  React.useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 768 && !sidebarCollapsed) {
-        setSidebarCollapsed(true);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [sidebarCollapsed]);
-
-  // Handle recipe selection from sidebar
-  const handleRecipeSelect = (recipe: Recipe) => {
-    // TODO: Implement recipe selection logic for drag-and-drop
-    console.log('Recipe selected:', recipe);
-  };
 
   // Handle meal card click to show recipe details
   const handleMealCardClick = (recipe: Recipe, meal?: any) => {
@@ -271,69 +247,9 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
         />
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col lg:flex-row">
-          {/* Mobile: Recipe Button - Fixed at bottom */}
-          <div className="lg:hidden fixed bottom-4 right-4 z-30">
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="w-12 h-12 xs:w-14 xs:h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors duration-200 touch-manipulation"
-              title={sidebarCollapsed ? "Browse recipes" : "Close recipes"}
-            >
-              {sidebarCollapsed ? (
-                <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              )}
-            </button>
-          </div>
-
-          {/* Desktop & Tablet: Recipe Sidebar */}
-          <div className="hidden md:block">
-            <RecipeSidebar
-              onRecipeSelect={handleRecipeSelect}
-              isCollapsed={sidebarCollapsed}
-              onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-            />
-          </div>
-
-          {/* Mobile: Full-screen Recipe Modal */}
-          {!sidebarCollapsed && (
-            <div className="md:hidden fixed inset-0 z-20 bg-white">
-              <div className="flex flex-col h-full">
-                {/* Mobile Recipe Header */}
-                <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
-                  <h2 className="text-lg font-semibold text-gray-900">Browse Recipes</h2>
-                  <button
-                    onClick={() => setSidebarCollapsed(true)}
-                    className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 touch-manipulation"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </div>
-                
-                {/* Mobile Recipe Content */}
-                <div className="flex-1 overflow-hidden">
-                  <RecipeSidebar
-                    onRecipeSelect={(recipe) => {
-                      handleRecipeSelect(recipe);
-                      setSidebarCollapsed(true); // Close modal after selection
-                    }}
-                    isCollapsed={false}
-                    onToggleCollapse={() => setSidebarCollapsed(true)}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
+        <div className="flex-1 flex flex-col">
           {/* Calendar Grid */}
-          <div className="flex-1 p-2 xs:p-3 md:p-4 lg:p-0">
+          <div className="flex-1 p-2 xs:p-3 md:p-4">
             <CalendarGrid
               weekStartDate={currentWeek}
               mealPlan={mealPlan || null}

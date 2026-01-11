@@ -91,26 +91,6 @@ describe('MealPlannerCalendar Mobile Responsiveness', () => {
     });
   });
 
-  it('should render recipe sidebar with mobile optimizations', () => {
-    renderWithQueryClient(<MealPlannerCalendar />);
-    
-    // Check that mobile recipe button is present
-    expect(screen.getByTitle('Browse recipes')).toBeInTheDocument();
-  });
-
-  it('should handle sidebar toggle functionality', () => {
-    renderWithQueryClient(<MealPlannerCalendar />);
-    
-    const toggleButton = screen.getByTitle('Browse recipes');
-    
-    // Click to expand sidebar
-    fireEvent.click(toggleButton);
-    
-    // Should show search input when expanded (use getAllBy since there might be multiple)
-    const searchInputs = screen.getAllByPlaceholderText('Search recipes...');
-    expect(searchInputs.length).toBeGreaterThan(0);
-  });
-
   it('should render empty meal slots with proper mobile styling', () => {
     renderWithQueryClient(<MealPlannerCalendar />);
     
@@ -121,5 +101,16 @@ describe('MealPlannerCalendar Mobile Responsiveness', () => {
     // Check that "Tap to browse recipes" text is present
     const browseElements = screen.getAllByText('Tap to browse recipes');
     expect(browseElements.length).toBeGreaterThan(0);
+  });
+
+  it('should render calendar without recipe sidebar', () => {
+    renderWithQueryClient(<MealPlannerCalendar />);
+    
+    // Check that recipe sidebar is not present
+    expect(screen.queryByTitle('Browse recipes')).not.toBeInTheDocument();
+    
+    // Check that the calendar takes full width without sidebar
+    const calendarGrid = screen.getByRole('application');
+    expect(calendarGrid).toBeInTheDocument();
   });
 });
