@@ -67,6 +67,31 @@
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Mobile-specific utilities */
+  .touch-manipulation {
+    touch-action: manipulation;
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  
+  /* Mobile-friendly tap targets */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
 }
 
 /* Custom scrollbar */
@@ -103,4 +128,51 @@
 
 .drop-zone-active {
   @apply border-blue-500 bg-blue-100;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Improve touch targets on mobile */
+  button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Prevent zoom on input focus */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  
+  /* Smooth scrolling for mobile */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbars on mobile for cleaner look */
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Better spacing for mobile cards */
+  .mobile-card-spacing {
+    margin-bottom: 1rem;
+  }
+  
+  /* Mobile-friendly meal slots */
+  .mobile-meal-slot {
+    min-height: 100px;
+    padding: 0.75rem;
+  }
+  
+  /* Larger tap targets for mobile */
+  .mobile-tap-target {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 12px;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }

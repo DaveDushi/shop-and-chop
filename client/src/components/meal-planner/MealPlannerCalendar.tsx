@@ -2,6 +2,8 @@ import React from 'react';
 import { useMealPlannerCalendar } from '../../hooks/useMealPlannerCalendar';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
+import { RecipeSidebar } from './RecipeSidebar';
+import { Recipe } from '../../types/Recipe.types';
 
 interface MealPlannerCalendarProps {
   initialWeek?: Date;
@@ -11,6 +13,11 @@ interface MealPlannerCalendarProps {
 export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
   onMealPlanChange,
 }) => {
+  // Auto-collapse sidebar on mobile by default
+  const [sidebarCollapsed, setSidebarCollapsed] = React.useState(
+    typeof window !== 'undefined' && window.innerWidth < 768
+  );
+
   const {
     // Calendar state and navigation
     currentWeek,
@@ -39,6 +46,24 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
       onMealPlanChange(mealPlan);
     }
   }, [mealPlan, onMealPlanChange]);
+
+  // Handle window resize to auto-collapse sidebar on mobile
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && !sidebarCollapsed) {
+        setSidebarCollapsed(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [sidebarCollapsed]);
+
+  // Handle recipe selection from sidebar
+  const handleRecipeSelect = (recipe: Recipe) => {
+    // TODO: Implement recipe selection logic for drag-and-drop
+    console.log('Recipe selected:', recipe);
+  };
 
   // Handle shopping list generation (placeholder for now)
   const handleGenerateShoppingList = () => {
@@ -81,7 +106,7 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-screen bg-gray-50">
       {/* Calendar Header */}
       <CalendarHeader
         currentWeek={currentWeek}
@@ -94,28 +119,79 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
         lastSaved={lastSaved}
       />
 
-      {/* Main Calendar Content */}
-      <div className="flex flex-1 bg-gray-50">
-        {/* Recipe Sidebar - Placeholder for now */}
-        <div className="w-80 bg-white border-r border-gray-200 p-4">
-          <div className="text-center text-gray-500 mt-8">
-            <div className="text-4xl mb-4">🍳</div>
-            <h3 className="font-medium text-gray-900 mb-2">Recipe Sidebar</h3>
-            <p className="text-sm">
-              Recipe search and browsing will be implemented here
-            </p>
-          </div>
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col md:flex-row">
+        {/* Mobile: Recipe Button - Fixed at bottom */}
+        <div className="md:hidden fixed bottom-4 right-4 z-30">
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors duration-200"
+            title={sidebarCollapsed ? "Browse recipes" : "Close recipes"}
+          >
+            {sidebarCollapsed ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+          </button>
         </div>
 
+        {/* Desktop: Recipe Sidebar */}
+        <div className="hidden md:block">
+          <RecipeSidebar
+            onRecipeSelect={handleRecipeSelect}
+            isCollapsed={sidebarCollapsed}
+            onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          />
+        </div>
+
+        {/* Mobile: Full-screen Recipe Modal */}
+        {!sidebarCollapsed && (
+          <div className="md:hidden fixed inset-0 z-20 bg-white">
+            <div className="flex flex-col h-full">
+              {/* Mobile Recipe Header */}
+              <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-white">
+                <h2 className="text-lg font-semibold text-gray-900">Browse Recipes</h2>
+                <button
+                  onClick={() => setSidebarCollapsed(true)}
+                  className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Mobile Recipe Content */}
+              <div className="flex-1 overflow-hidden">
+                <RecipeSidebar
+                  onRecipeSelect={(recipe) => {
+                    handleRecipeSelect(recipe);
+                    setSidebarCollapsed(true); // Close modal after selection
+                  }}
+                  isCollapsed={false}
+                  onToggleCollapse={() => setSidebarCollapsed(true)}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Calendar Grid */}
-        <CalendarGrid
-          weekStartDate={currentWeek}
-          mealPlan={mealPlan || null}
-          onMealAssign={assignMeal}
-          onMealRemove={removeMeal}
-          onMealSlotClick={handleMealSlotClick}
-          isLoading={isLoading}
-        />
+        <div className="flex-1 p-4 md:p-0">
+          <CalendarGrid
+            weekStartDate={currentWeek}
+            mealPlan={mealPlan || null}
+            onMealAssign={assignMeal}
+            onMealRemove={removeMeal}
+            onMealSlotClick={handleMealSlotClick}
+            isLoading={isLoading}
+          />
+        </div>
       </div>
     </div>
   );

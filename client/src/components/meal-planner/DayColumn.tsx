@@ -32,7 +32,12 @@ export const DayColumn: React.FC<DayColumnProps> = ({
   onMealSlotClick,
 }) => {
   return (
-    <div className="border-r border-gray-200 last:border-r-0 flex flex-col">
+    <div className="border-r border-gray-200 last:border-r-0 flex flex-col md:min-h-0 min-h-[400px]">
+      {/* Mobile Day Header - only show on mobile when using single column layout */}
+      <div className="md:hidden bg-gray-50 p-3 border-b border-gray-200">
+        <div className="font-semibold text-gray-900 capitalize">{dayKey}</div>
+      </div>
+      
       {MEAL_TYPES.map((mealType) => (
         <MealSlotComponent
           key={`${dayKey}-${mealType}`}

@@ -35,9 +35,9 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
   return (
     <div
       className={`
-        flex-1 min-h-[180px] border-b border-gray-200 last:border-b-0 p-3
+        flex-1 min-h-[140px] md:min-h-[180px] border-b border-gray-200 last:border-b-0 p-2 md:p-3
         ${isDropTarget ? 'bg-blue-50 border-blue-300' : ''}
-        ${!meal ? 'hover:bg-gray-50 cursor-pointer' : ''}
+        ${!meal ? 'hover:bg-gray-50 cursor-pointer active:bg-gray-100' : ''}
         transition-colors duration-200
       `}
       onClick={handleClick}
@@ -55,10 +55,10 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
           onClick={handleClick}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center min-h-[120px] border-2 border-dashed border-gray-300 rounded-lg">
+        <div className="flex-1 flex items-center justify-center min-h-[100px] md:min-h-[120px] border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors duration-200">
           <div className="text-center text-gray-400">
-            <div className="text-2xl mb-2">+</div>
-            <div className="text-sm">Add meal</div>
+            <div className="text-xl md:text-2xl mb-1 md:mb-2">+</div>
+            <div className="text-xs md:text-sm">Add meal</div>
           </div>
         </div>
       )}

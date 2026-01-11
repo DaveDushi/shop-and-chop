@@ -2,5 +2,8 @@ export { CalendarGrid } from './CalendarGrid';
 export { CalendarHeader } from './CalendarHeader';
 export { DayColumn } from './DayColumn';
 export { MealSlotComponent } from './MealSlotComponent';
+export { MealSlot } from './MealSlot';
 export { MealCard } from './MealCard';
 export { MealPlannerCalendar } from './MealPlannerCalendar';
+export { RecipeSidebar } from './RecipeSidebar';
+export { RecipeCard } from './RecipeCard';

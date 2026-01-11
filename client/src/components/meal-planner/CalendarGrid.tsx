@@ -3,6 +3,7 @@ import { format, addDays } from 'date-fns';
 import { MealPlan, MealType, MealSlot } from '../../types/MealPlan.types';
 import { Recipe } from '../../types/Recipe.types';
 import { DayColumn } from './DayColumn';
+import { MealCard } from './MealCard';
 
 interface CalendarGridProps {
   weekStartDate: Date;
@@ -49,9 +50,9 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   };
 
   return (
-    <div className="flex-1 bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col">
-      {/* Calendar Header */}
-      <div className="grid grid-cols-7 border-b border-gray-200">
+    <div className="flex-1 bg-white flex flex-col overflow-hidden">
+      {/* Desktop Calendar Header - Hidden on Mobile */}
+      <div className="hidden md:grid grid-cols-7 border-b border-gray-200 bg-white rounded-t-lg shadow-sm border border-gray-200">
         {DAY_LABELS.map((dayLabel, index) => {
           const currentDate = addDays(weekStartDate, index);
           const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
@@ -73,22 +74,86 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
       </div>
 
       {/* Calendar Body */}
-      <div className="grid grid-cols-7 flex-1">
-        {DAYS_OF_WEEK.map((dayKey, dayIndex) => {
-          const dayMeals = (displayMealPlan.meals as any)[dayKey] || {};
-          
-          return (
-            <DayColumn
-              key={dayKey}
-              dayIndex={dayIndex}
-              dayKey={dayKey}
-              meals={dayMeals}
-              onMealAssign={onMealAssign}
-              onMealRemove={onMealRemove}
-              onMealSlotClick={onMealSlotClick}
-            />
-          );
-        })}
+      <div className="flex-1 overflow-y-auto">
+        {/* Mobile Layout - Single Column */}
+        <div className="md:hidden space-y-4 p-4">
+          {DAYS_OF_WEEK.map((dayKey, dayIndex) => {
+            const currentDate = addDays(weekStartDate, dayIndex);
+            const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+            const dayMeals = (displayMealPlan.meals as any)[dayKey] || {};
+            
+            return (
+              <div key={dayKey} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                {/* Mobile Day Header */}
+                <div className={`p-4 border-b border-gray-200 ${isToday ? 'bg-blue-50' : 'bg-gray-50'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-semibold text-gray-900 capitalize">{dayKey}</div>
+                      <div className={`text-sm ${isToday ? 'text-blue-600 font-medium' : 'text-gray-600'}`}>
+                        {format(currentDate, 'MMM d')}
+                      </div>
+                    </div>
+                    {isToday && (
+                      <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                        Today
+                      </span>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Mobile Meal Slots */}
+                <div className="p-4 space-y-4">
+                  {(['breakfast', 'lunch', 'dinner'] as const).map((mealType) => (
+                    <div key={mealType} className="border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                        {mealType}
+                      </div>
+                      {dayMeals[mealType] ? (
+                        <MealCard
+                          meal={dayMeals[mealType]}
+                          onRemove={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            onMealRemove(dayIndex, mealType);
+                          }}
+                          onClick={() => onMealSlotClick(dayIndex, mealType)}
+                        />
+                      ) : (
+                        <div 
+                          className="flex items-center justify-center min-h-[80px] border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 active:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                          onClick={() => onMealSlotClick(dayIndex, mealType)}
+                        >
+                          <div className="text-center text-gray-400">
+                            <div className="text-xl mb-1">+</div>
+                            <div className="text-sm">Add meal</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop Layout - Grid */}
+        <div className="hidden md:grid grid-cols-7 flex-1 bg-white rounded-b-lg shadow-sm border-l border-r border-b border-gray-200">
+          {DAYS_OF_WEEK.map((dayKey, dayIndex) => {
+            const dayMeals = (displayMealPlan.meals as any)[dayKey] || {};
+            
+            return (
+              <DayColumn
+                key={dayKey}
+                dayIndex={dayIndex}
+                dayKey={dayKey}
+                meals={dayMeals}
+                onMealAssign={onMealAssign}
+                onMealRemove={onMealRemove}
+                onMealSlotClick={onMealSlotClick}
+              />
+            );
+          })}
+        </div>
       </div>
     </div>
   );

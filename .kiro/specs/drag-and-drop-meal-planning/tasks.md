@@ -37,14 +37,14 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 2: Week Navigation Consistency**
     - **Validates: Requirements US-1.2**
 
-- [ ] 3. Create meal slot and meal card components
-  - [ ] 3.1 Implement MealSlot component with empty and populated states
+- [x] 3. Create meal slot and meal card components
+  - [x] 3.1 Implement MealSlot component with empty and populated states
     - Create empty slot placeholder with visual indicators
     - Handle meal assignment and removal events
     - Add basic styling and hover states
     - _Requirements: US-1.1, US-3.1_
 
-  - [ ] 3.2 Implement MealCard component for displaying assigned meals
+  - [x] 3.2 Implement MealCard component for displaying assigned meals
     - Display recipe name, image, and key details (prep time, servings)
     - Add click handler for recipe detail modal
     - Implement responsive card design
@@ -54,14 +54,14 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 3: Meal Card Information Completeness**
     - **Validates: Requirements US-1.3**
 
-- [ ] 4. Build recipe sidebar with search and filtering
-  - [ ] 4.1 Create RecipeSidebar component structure
+- [x] 4. Build recipe sidebar with search and filtering
+  - [x] 4.1 Create RecipeSidebar component structure
     - Implement collapsible sidebar layout
     - Add search input with debounced queries
     - Create filter controls for dietary preferences and meal types
     - _Requirements: US-2.1_
 
-  - [ ] 4.2 Implement RecipeCard components for sidebar
+  - [x] 4.2 Implement RecipeCard components for sidebar
     - Display recipe information in draggable cards
     - Add recipe preview functionality
     - Implement responsive card layout for sidebar
@@ -71,7 +71,8 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 4: Recipe Sidebar Functionality**
     - **Validates: Requirements US-2.1**
 
-- [ ] 5. Checkpoint - Ensure basic calendar structure works
+- [x] 5. Checkpoint - Ensure basic calendar structure works
+  - Ensure UI is optimized for mobile and has a good UI/UX
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 6. Implement drag-and-drop core functionality
