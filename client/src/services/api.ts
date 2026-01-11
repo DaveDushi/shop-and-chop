@@ -36,7 +36,18 @@ api.interceptors.response.use(
       // Unauthorized - clear token and redirect to login
       localStorage.removeItem('auth_token');
       localStorage.removeItem('user_data');
-      window.location.href = '/login';
+      
+      // Show appropriate message based on the error
+      if (message.includes('User not found') || message.includes('log in again')) {
+        toast.error('Your session has expired. Please log in again.');
+      } else {
+        toast.error('Authentication required. Please log in.');
+      }
+      
+      // Only redirect if we're not already on the login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
       return Promise.reject(error);
     }
     

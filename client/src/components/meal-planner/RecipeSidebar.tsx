@@ -67,13 +67,13 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
 
   if (isCollapsed) {
     return (
-      <div className="w-12 bg-white border-r border-gray-200 flex flex-col items-center py-4">
+      <div className="w-12 lg:w-16 bg-white border-r border-gray-200 flex flex-col items-center py-4">
         <button
           onClick={onToggleCollapse}
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 touch-manipulation"
           title="Expand recipe sidebar"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-4 h-4 lg:w-5 lg:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -85,15 +85,15 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
   }
 
   return (
-    <div className="w-full md:w-80 bg-white md:border-r border-gray-200 flex flex-col h-full">
+    <div className="w-full md:w-80 lg:w-88 xl:w-96 bg-white md:border-r border-gray-200 flex flex-col h-full">
       {/* Sidebar Header - Hidden on mobile since we have the modal header */}
-      <div className="hidden md:block p-4 border-b border-gray-200">
-        <div className="flex items-center justify-between mb-4">
+      <div className="hidden md:block p-3 lg:p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-3 lg:mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Recipes</h2>
           {onToggleCollapse && (
             <button
               onClick={onToggleCollapse}
-              className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200"
+              className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors duration-200 touch-manipulation"
               title="Collapse sidebar"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,12 +115,12 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
             placeholder="Search recipes..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-manipulation"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center touch-manipulation"
             >
               <svg className="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -131,12 +131,12 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
       </div>
 
       {/* Filter Controls */}
-      <div className="p-4 border-b border-gray-200 space-y-4">
+      <div className="p-3 lg:p-4 border-b border-gray-200 space-y-3 lg:space-y-4">
         {/* Mobile: Search Input (when in mobile modal) */}
         <div className="md:hidden">
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -145,12 +145,12 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
               placeholder="Search recipes..."
               value={searchQuery}
               onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base touch-manipulation"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center touch-manipulation"
               >
                 <svg className="h-5 w-5 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -159,6 +159,7 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
             )}
           </div>
         </div>
+        
         {/* Dietary Tags Filter */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -175,7 +176,7 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
                     : [...currentTags, tag];
                   handleFilterChange({ dietaryTags: newTags });
                 }}
-                className={`px-3 py-1 text-xs rounded-full border transition-colors duration-200 ${
+                className={`px-3 py-2 text-xs rounded-full border transition-colors duration-200 touch-manipulation ${
                   filters.dietaryTags?.includes(tag)
                     ? 'bg-blue-100 border-blue-300 text-blue-800'
                     : 'bg-gray-100 border-gray-300 text-gray-700 hover:bg-gray-200'
@@ -195,7 +196,7 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
           <select
             value={filters.difficulty || ''}
             onChange={(e) => handleFilterChange({ difficulty: e.target.value || undefined })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-manipulation"
           >
             <option value="">All difficulties</option>
             {difficultyOptions.map((difficulty) => (
@@ -218,7 +219,7 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
             onChange={(e) => handleFilterChange({ 
               maxCookTime: e.target.value ? parseInt(e.target.value) : undefined 
             })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-manipulation"
             min="1"
             max="300"
           />
@@ -228,7 +229,7 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
         {(searchQuery || Object.keys(filters).some(key => filters[key as keyof RecipeFilters])) && (
           <button
             onClick={handleClearFilters}
-            className="w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+            className="w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors duration-200 touch-manipulation"
           >
             Clear all filters
           </button>
@@ -258,7 +259,7 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
             </p>
           </div>
         ) : (
-          <div className="p-4 space-y-4">
+          <div className="p-3 lg:p-4 space-y-3 lg:space-y-4">
             {recipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}

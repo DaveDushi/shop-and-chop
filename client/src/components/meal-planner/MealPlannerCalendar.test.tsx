@@ -118,8 +118,8 @@ describe('MealPlannerCalendar Mobile Responsiveness', () => {
     const addMealElements = screen.getAllByText('Add meal');
     expect(addMealElements.length).toBeGreaterThan(0);
     
-    // Check that plus icons are present
-    const plusIcons = screen.getAllByText('+');
-    expect(plusIcons.length).toBeGreaterThan(0);
+    // Check that "Tap to browse recipes" text is present
+    const browseElements = screen.getAllByText('Tap to browse recipes');
+    expect(browseElements.length).toBeGreaterThan(0);
   });
 });

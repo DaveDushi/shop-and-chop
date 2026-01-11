@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { useCalendarState } from './useCalendarState';
-import { useMealPlanWithHistory } from './useMealPlanWithHistory';
+import { useMealPlanWithAutoSave } from './useMealPlanWithAutoSave';
 import { useRecipes } from './useRecipes';
 import { MealType } from '../types/MealPlan.types';
 import { Recipe } from '../types/Recipe.types';
 
 export const useMealPlannerCalendar = () => {
   const calendarState = useCalendarState();
-  const mealPlan = useMealPlanWithHistory(calendarState.currentWeek);
+  const mealPlan = useMealPlanWithAutoSave(calendarState.currentWeek);
   
   // Default recipe search (can be customized later)
   const recipes = useRecipes('', {});
@@ -79,8 +79,8 @@ export const useMealPlannerCalendar = () => {
   }, [mealPlan.mealPlan, calendarState]);
 
   // Auto-save status
-  const isDirty = mealPlan.isUpdating;
-  const lastSaved = mealPlan.mealPlan?.updatedAt || null;
+  const isDirty = mealPlan.hasUnsavedChanges;
+  const lastSaved = mealPlan.lastSaved;
 
   return {
     // Calendar state and navigation
@@ -104,7 +104,7 @@ export const useMealPlannerCalendar = () => {
     swapMeals: handleSwapMeals,
     updateServings: mealPlan.updateServings,
 
-    // Undo/Redo functionality
+    // Undo/Redo functionality (if available from base hook)
     undo: mealPlan.undo,
     redo: mealPlan.redo,
     canUndo: mealPlan.canUndo,
@@ -136,7 +136,13 @@ export const useMealPlannerCalendar = () => {
     setDropTarget: calendarState.setDropTarget,
     setDragPreview: calendarState.setDragPreview,
 
-    // Auto-save status
+    // Auto-save status and controls
+    autoSaveStatus: mealPlan.autoSaveStatus,
+    isOnline: mealPlan.isOnline,
+    isSaving: mealPlan.isSaving,
+    hasUnsavedChanges: mealPlan.hasUnsavedChanges,
+    forceSave: mealPlan.forceSave,
+    clearAutoSaveError: mealPlan.clearAutoSaveError,
     isDirty,
     lastSaved,
   };

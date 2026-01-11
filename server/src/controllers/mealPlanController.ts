@@ -9,6 +9,15 @@ export const getMealPlans = asyncHandler(async (req: AuthenticatedRequest, res: 
     throw createError('User not authenticated', 401);
   }
 
+  // Verify user exists in database
+  const userExists = await prisma.user.findUnique({
+    where: { id: req.user.userId }
+  });
+
+  if (!userExists) {
+    throw createError('User not found. Please log in again.', 401);
+  }
+
   const { weekStart } = req.query;
 
   // If weekStart is provided, get meal plan for specific week
@@ -102,14 +111,25 @@ export const createMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
     throw createError('Meal plan already exists for this week', 409);
   }
 
-  // Verify all recipes exist
-  const recipeIds = meals.map((meal: any) => meal.recipeId);
-  const recipes = await prisma.recipe.findMany({
-    where: { id: { in: recipeIds } }
-  });
+  // Verify all recipes exist (only for meals that have recipe IDs)
+  const recipeIds = meals
+    .filter((meal: any) => meal.recipeId) // Only include meals with valid recipe IDs
+    .map((meal: any) => meal.recipeId);
+  
+  if (recipeIds.length > 0) {
+    // Remove duplicates for validation - same recipe can be used multiple times
+    const uniqueRecipeIds = [...new Set(recipeIds)];
+    
+    const recipes = await prisma.recipe.findMany({
+      where: { id: { in: uniqueRecipeIds } }
+    });
 
-  if (recipes.length !== recipeIds.length) {
-    throw createError('One or more recipes not found', 404);
+    if (recipes.length !== uniqueRecipeIds.length) {
+      // Find which recipe IDs are missing
+      const foundRecipeIds = recipes.map(r => r.id);
+      const missingRecipeIds = uniqueRecipeIds.filter(id => !foundRecipeIds.includes(id));
+      throw createError(`Recipes not found: ${missingRecipeIds.join(', ')}`, 404);
+    }
   }
 
   // Create meal plan with meals
@@ -193,6 +213,15 @@ export const updateMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
     throw createError('Meal plan ID is required', 400);
   }
 
+  // Verify user exists in database
+  const userExists = await prisma.user.findUnique({
+    where: { id: req.user.userId }
+  });
+
+  if (!userExists) {
+    throw createError('User not found. Please log in again.', 401);
+  }
+
   // Check if meal plan exists and belongs to user
   let existingMealPlan = await prisma.mealPlan.findFirst({
     where: { 
@@ -223,14 +252,25 @@ export const updateMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
     });
   }
 
-  // Verify all recipes exist
-  const recipeIds = meals.map((meal: any) => meal.recipeId);
-  const recipes = await prisma.recipe.findMany({
-    where: { id: { in: recipeIds } }
-  });
+  // Verify all recipes exist (only for meals that have recipe IDs)
+  const recipeIds = meals
+    .filter((meal: any) => meal.recipeId) // Only include meals with valid recipe IDs
+    .map((meal: any) => meal.recipeId);
+  
+  if (recipeIds.length > 0) {
+    // Remove duplicates for validation - same recipe can be used multiple times
+    const uniqueRecipeIds = [...new Set(recipeIds)];
+    
+    const recipes = await prisma.recipe.findMany({
+      where: { id: { in: uniqueRecipeIds } }
+    });
 
-  if (recipes.length !== recipeIds.length) {
-    throw createError('One or more recipes not found', 404);
+    if (recipes.length !== uniqueRecipeIds.length) {
+      // Find which recipe IDs are missing
+      const foundRecipeIds = recipes.map(r => r.id);
+      const missingRecipeIds = uniqueRecipeIds.filter(id => !foundRecipeIds.includes(id));
+      throw createError(`Recipes not found: ${missingRecipeIds.join(', ')}`, 404);
+    }
   }
 
   // Update meal plan using the existing meal plan's ID

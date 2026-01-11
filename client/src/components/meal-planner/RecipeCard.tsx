@@ -100,10 +100,27 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   return (
     <div
       ref={isDraggable ? dragRef : undefined}
-      className={`group relative bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer ${
+      className={`group relative bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer touch-manipulation ${
         isDraggable && canDrag ? 'cursor-grab active:cursor-grabbing' : ''
       } ${isDragging ? 'opacity-50' : ''} ${className}`}
       onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          const syntheticEvent = {
+            ...e,
+            target: e.target,
+            currentTarget: e.currentTarget,
+            preventDefault: e.preventDefault,
+            stopPropagation: e.stopPropagation,
+          } as unknown as React.MouseEvent<Element, MouseEvent>;
+          handleCardClick(syntheticEvent);
+        }
+      }}
+      aria-label={`${showSelectButton ? 'Select' : 'View details for'} ${recipe.name}. ${recipe.difficulty} difficulty, ${totalTime} minutes total time, serves ${recipe.servings}`}
+      aria-describedby={`recipe-${recipe.id}-description`}
       style={{
         opacity: isDragging ? 0.5 : 1,
       }}
@@ -147,7 +164,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           <div className="absolute bottom-2 right-2">
             <button
               onClick={handleSelectClick}
-              className="select-button p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+              className="select-button p-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-105 touch-manipulation"
               title={`Select ${recipe.name}`}
               aria-label={`Select ${recipe.name} for meal plan`}
             >
@@ -160,7 +177,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
         {!showSelectButton && (
           <button
             onClick={handlePreviewClick}
-            className="absolute bottom-2 right-2 p-1.5 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            className="absolute bottom-2 right-2 p-2 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-sm opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200 touch-manipulation"
             title="Preview recipe"
           >
             <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,7 +197,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
         {/* Recipe Description */}
         {recipe.description && (
-          <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+          <p 
+            id={`recipe-${recipe.id}-description`}
+            className="text-xs text-gray-600 mb-2 line-clamp-2"
+          >
             {recipe.description}
           </p>
         )}
@@ -242,7 +262,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <h4 className="font-medium text-gray-900 text-sm">Quick Preview</h4>
               <button
                 onClick={handlePreviewClick}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 p-1 touch-manipulation"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

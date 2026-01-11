@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useDrop } from 'react-dnd';
 import { MealSlot as MealSlotType, MealType } from '../../types/MealPlan.types';
 import { Recipe } from '../../types/Recipe.types';
@@ -14,10 +14,13 @@ interface MealSlotProps {
   meal?: MealSlotType;
   onMealAssign: (recipe: Recipe) => void;
   onMealRemove: () => void;
+  onMealCardClick?: (recipe: Recipe, meal?: MealSlotType) => void;
+  onServingChange?: (newServings: number) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
   weekStartDate?: Date;
+  isInShoppingList?: boolean;
 }
 
 export const MealSlot: React.FC<MealSlotProps> = ({
@@ -26,12 +29,39 @@ export const MealSlot: React.FC<MealSlotProps> = ({
   meal,
   onMealAssign,
   onMealRemove,
+  onMealCardClick,
+  onServingChange,
   onSwapMeals,
   onCopyMeal,
   onDuplicateDay,
   weekStartDate,
+  isInShoppingList = false,
 }) => {
   const [showRecipeModal, setShowRecipeModal] = useState(false);
+  const slotRef = useRef<HTMLDivElement>(null);
+
+  // Make slot focusable and add keyboard event handling
+  useEffect(() => {
+    const slotElement = slotRef.current;
+    if (!slotElement) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Handle Enter key to open recipe selection
+      if (event.key === 'Enter' && !meal) {
+        event.preventDefault();
+        setShowRecipeModal(true);
+      }
+      
+      // Handle Delete key to remove meal
+      if (event.key === 'Delete' && meal) {
+        event.preventDefault();
+        onMealRemove();
+      }
+    };
+
+    slotElement.addEventListener('keydown', handleKeyDown);
+    return () => slotElement.removeEventListener('keydown', handleKeyDown);
+  }, [meal, onMealRemove]);
 
   // Set up drop functionality
   const [{ isOver, canDrop }, dropRef] = useDrop<
@@ -89,8 +119,9 @@ export const MealSlot: React.FC<MealSlotProps> = ({
   const isDropTarget = isOver && canDrop;
 
   const handleMealCardClick = () => {
-    // This will be handled by the parent component for recipe detail modal
-    // For now, we'll just prevent the event from bubbling up
+    if (meal && onMealCardClick) {
+      onMealCardClick(meal.recipe, meal); // Pass both recipe and meal
+    }
   };
 
   const handleRemove = (e?: React.MouseEvent) => {
@@ -128,13 +159,47 @@ export const MealSlot: React.FC<MealSlotProps> = ({
     return format(currentDate, 'EEEE');
   };
 
+  const getSlotDescription = (): string => {
+    const dayName = getDayName();
+    const mealName = getMealTypeLabel(mealType);
+    
+    if (meal) {
+      return `${dayName} ${mealName}: ${meal.recipe.name}, ${meal.servings} servings`;
+    } else {
+      return `${dayName} ${mealName}: Empty meal slot`;
+    }
+  };
+
+  const getSlotInstructions = (): string => {
+    if (meal) {
+      return 'Press Enter to view recipe details, Delete to remove meal, or drag to move';
+    } else {
+      return 'Press Enter to add a meal, or drag a recipe here';
+    }
+  };
+
   return (
     <>
       <div
-        ref={dropRef}
+        ref={(node) => {
+          dropRef(node);
+          if (slotRef.current !== node) {
+            (slotRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+          }
+        }}
+        data-meal-slot="true"
+        data-day-index={dayIndex}
+        data-meal-type={mealType}
+        tabIndex={0}
+        role="button"
+        aria-label={getSlotDescription()}
+        aria-describedby={`meal-slot-instructions-${dayIndex}-${mealType}`}
+        aria-expanded={showRecipeModal}
+        aria-haspopup={!meal ? 'dialog' : undefined}
         className={`
-          flex-1 min-h-[140px] border-b border-gray-200 last:border-b-0 p-3
+          flex-1 min-h-[120px] xs:min-h-[140px] border-b border-gray-200 last:border-b-0 p-3
           transition-all duration-200 ease-in-out
+          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
           ${isDropTarget 
             ? 'bg-blue-50 border-blue-300 border-2 border-dashed shadow-inner' 
             : 'border-solid'
@@ -142,6 +207,14 @@ export const MealSlot: React.FC<MealSlotProps> = ({
           ${!meal && !isDropTarget ? 'hover:bg-gray-50' : ''}
         `}
       >
+        {/* Screen reader instructions */}
+        <div 
+          id={`meal-slot-instructions-${dayIndex}-${mealType}`}
+          className="sr-only"
+        >
+          {getSlotInstructions()}
+        </div>
+
         {/* Meal Type Label */}
         <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
           {getMealTypeLabel(mealType)}
@@ -156,24 +229,29 @@ export const MealSlot: React.FC<MealSlotProps> = ({
               mealType={mealType}
               onRemove={handleRemove}
               onClick={handleMealCardClick}
+              onServingChange={onServingChange}
               isDraggable={true}
               onCopyMeal={onCopyMeal}
               onSwapMeals={onSwapMeals}
               onDuplicateDay={onDuplicateDay}
               compact={true}
+              isInShoppingList={isInShoppingList}
             />
           </div>
         ) : (
           <div 
             className={`
-              flex-1 flex items-center justify-center min-h-[100px] rounded-lg
-              transition-all duration-200 ease-in-out cursor-pointer
+              flex-1 flex items-center justify-center min-h-[80px] xs:min-h-[100px] rounded-lg
+              transition-all duration-200 ease-in-out cursor-pointer touch-manipulation
               ${isDropTarget 
                 ? 'border-2 border-dashed border-blue-400 bg-blue-25' 
-                : 'border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-25'
+                : 'border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-25 active:bg-gray-100'
               }
             `}
             onClick={handleAddMealClick}
+            data-add-meal-button="true"
+            role="button"
+            aria-label={`Add meal to ${getDayName()} ${getMealTypeLabel(mealType)}`}
           >
             <div className={`
               text-center transition-colors duration-200
@@ -181,16 +259,16 @@ export const MealSlot: React.FC<MealSlotProps> = ({
             `}>
               <div className="mb-2">
                 <Plus className={`
-                  h-6 w-6 mx-auto transition-transform duration-200
+                  h-5 w-5 xs:h-6 xs:w-6 mx-auto transition-transform duration-200
                   ${isDropTarget ? 'scale-110' : 'hover:scale-105'}
                 `} />
               </div>
-              <div className="text-sm font-medium">
+              <div className="text-xs xs:text-sm font-medium">
                 {isDropTarget ? 'Drop recipe here' : 'Add meal'}
               </div>
               {!isDropTarget && (
                 <div className="text-xs text-gray-400 mt-1">
-                  Click to browse recipes
+                  Tap to browse recipes
                 </div>
               )}
             </div>
@@ -199,9 +277,13 @@ export const MealSlot: React.FC<MealSlotProps> = ({
 
         {/* Drop Target Overlay for Visual Feedback */}
         {isDropTarget && (
-          <div className="absolute inset-0 pointer-events-none">
+          <div 
+            className="absolute inset-0 pointer-events-none"
+            aria-live="polite"
+            aria-atomic="true"
+          >
             <div className="w-full h-full border-2 border-dashed border-blue-400 rounded-lg bg-blue-50 bg-opacity-50 flex items-center justify-center">
-              <div className="text-blue-600 font-medium text-sm">
+              <div className="text-blue-600 font-medium text-xs xs:text-sm">
                 Drop to add meal
               </div>
             </div>

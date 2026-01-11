@@ -138,14 +138,14 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 7: Undo/Redo State Management**
     - **Validates: Requirements US-2.5**
 
-- [ ] 9. Add recipe detail modal and serving adjustments
-  - [ ] 9.1 Create recipe detail modal component
+- [x] 9. Add recipe detail modal and serving adjustments
+  - [x] 9.1 Create recipe detail modal component
     - Implement modal with complete recipe information display
     - Show ingredients, instructions, prep time, servings, ratings, and dietary info
     - Add modal open/close functionality triggered by meal card clicks
     - _Requirements: US-4.1, US-4.2, US-4.3_
 
-  - [ ] 9.2 Implement serving size adjustment functionality
+  - [x] 9.2 Implement serving size adjustment functionality
     - Add serving adjustment controls in calendar view
     - Update meal slot serving counts and recalculate dependent values
     - Integrate serving changes with auto-save functionality
@@ -157,17 +157,20 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 13: Serving Adjustment Consistency**
     - **Validates: Requirements US-4.1, US-4.2, US-4.3, US-4.4**
 
-- [ ] 10. Checkpoint - Ensure core functionality works end-to-end
+- [x] 10. Checkpoint - Ensure core functionality works end-to-end
   - Ensure all tests pass, ask the user if questions arise.
+  - Ensure we can add the same meal multiple times over the week (for example same dinner monday and wednesday)
+  - Ensure the UI/UX is up to standards - mobile first, The user should be able to view all the features on the calendar nothing should be blocked
+  - Remove all unused components / code 
 
-- [ ] 11. Implement data persistence and auto-save
-  - [ ] 11.1 Set up meal plan API integration
+- [x] 11. Implement data persistence and auto-save
+  - [x] 11.1 Set up meal plan API integration
     - Connect to existing meal plan endpoints for CRUD operations
     - Implement optimistic updates with rollback on failure
     - Add error handling and retry logic for network failures
     - _Requirements: US-5.1, US-5.2_
 
-  - [ ] 11.2 Implement auto-save functionality
+  - [x] 11.2 Implement auto-save functionality
     - Add debounced auto-save for meal plan changes
     - Show save status indicators to users
     - Handle offline scenarios with local state persistence
@@ -178,14 +181,14 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 15: Offline Graceful Degradation**
     - **Validates: Requirements US-5.1, US-5.2, US-5.3**
 
-- [ ] 12. Implement shopping list integration
-  - [ ] 12.1 Add shopping list generation functionality
+- [x] 12. Implement shopping list integration
+  - [x] 12.1 Add shopping list generation functionality
     - Create shopping list generation from current meal plan
     - Implement ingredient consolidation and organization logic
     - Add one-click generation button to calendar header
     - _Requirements: US-6.1_
 
-  - [ ] 12.2 Create shopping list preview and finalization
+  - [x] 12.2 Create shopping list preview and finalization
     - Implement shopping list preview modal with ingredient details
     - Add integration with existing shopping list service
     - Show visual indicators for meals contributing to shopping list
@@ -199,7 +202,7 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Validates: Requirements US-6.1, US-6.2, US-6.3, US-6.4**
 
 - [ ] 13. Add responsive design and mobile optimizations
-  - [ ] 13.1 Implement responsive breakpoints and mobile layout
+  - [x] 13.1 Implement responsive breakpoints and mobile layout
     - Optimize calendar grid for tablet and mobile viewports
     - Implement collapsible sidebar for smaller screens
     - Add touch-friendly drag-and-drop interactions
@@ -210,14 +213,14 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - Verify touch interaction functionality
     - _Requirements: US-1.4_
 
-- [ ] 14. Final integration and polish
-  - [ ] 14.1 Integrate calendar with existing application routing
+- [x] 14. Final integration and polish
+  - [x] 14.1 Integrate calendar with existing application routing
     - Add calendar route to existing React Router configuration
     - Ensure proper authentication and user context integration
     - Connect with existing navigation and layout components
     - _Requirements: US-5.2_
 
-  - [ ] 14.2 Add accessibility improvements
+  - [x] 14.2 Add accessibility improvements
     - Implement keyboard navigation for drag-and-drop operations
     - Add ARIA labels and screen reader announcements
     - Ensure WCAG 2.1 AA compliance for color contrast and focus indicators
@@ -229,8 +232,9 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - Test responsive behavior across device types
     - _Requirements: All user stories_
 
-- [ ] 15. Final checkpoint - Complete system validation
+- [x] 15. Final checkpoint - Complete system validation
   - Ensure all tests pass, ask the user if questions arise.
+  - ask the user if they want any changes.
 
 ## Notes
 

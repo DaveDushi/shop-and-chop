@@ -15,12 +15,15 @@ interface DayColumnProps {
   onMealAssign: (dayIndex: number, mealType: MealType, recipe: Recipe) => void;
   onMealRemove: (dayIndex: number, mealType: MealType) => void;
   onMealSlotClick: (dayIndex: number, mealType: MealType) => void;
+  onMealCardClick?: (recipe: Recipe, meal?: MealSlot) => void;
+  onServingChange?: (dayIndex: number, mealType: MealType, newServings: number) => void;
   onMealSwap?: (sourceLocation: { dayIndex: number; mealType: MealType }, targetDayIndex: number, targetMealType: MealType, recipe: Recipe) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onClearDay?: (dayIndex: number) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
   weekStartDate?: Date;
+  mealsInShoppingList?: Set<string>;
 }
 
 const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner'];
@@ -37,11 +40,14 @@ export const DayColumn: React.FC<DayColumnProps> = ({
   onMealAssign,
   onMealRemove,
   onMealSlotClick,
+  onMealCardClick,
+  onServingChange,
   onSwapMeals,
   onClearDay,
   onCopyMeal,
   onDuplicateDay,
   weekStartDate,
+  mealsInShoppingList = new Set(),
 }) => {
   // Check if the day has any meals
   const hasMeals = meals.breakfast || meals.lunch || meals.dinner;
@@ -81,10 +87,13 @@ export const DayColumn: React.FC<DayColumnProps> = ({
           onMealAssign={onMealAssign}
           onMealRemove={onMealRemove}
           onMealSlotClick={onMealSlotClick}
+          onMealCardClick={onMealCardClick}
+          onServingChange={onServingChange}
           onSwapMeals={onSwapMeals}
           onCopyMeal={onCopyMeal}
           onDuplicateDay={onDuplicateDay}
           weekStartDate={weekStartDate}
+          isInShoppingList={meals[mealType] ? mealsInShoppingList.has(meals[mealType].id) : false}
         />
       ))}
 

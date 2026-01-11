@@ -23,6 +23,7 @@ const createMockMealPlan = (id: string): MealPlan => ({
           dietaryTags: [],
           ingredients: [],
           instructions: [],
+          createdBy: 'test-user',
         },
         servings: 4,
         scheduledFor: new Date('2024-01-01T08:00:00.000Z'),

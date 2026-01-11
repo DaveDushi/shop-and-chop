@@ -2,6 +2,7 @@ export { CalendarGrid } from './CalendarGrid';
 export { CalendarHeader } from './CalendarHeader';
 export { DayColumn } from './DayColumn';
 export { DragLayer } from './DragLayer';
+export { KeyboardNavigationHelp } from './KeyboardNavigationHelp';
 export { MealSlotComponent } from './MealSlotComponent';
 export { MealSlot } from './MealSlot';
 export { MealCard } from './MealCard';
