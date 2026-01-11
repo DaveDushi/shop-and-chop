@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useDrag } from 'react-dnd';
 import { Recipe } from '../../types/Recipe.types';
 import { DragItemTypes, RecipeDragItem, DragCollectedProps } from '../../types/DragDrop.types';
+import { Plus } from 'lucide-react';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -9,6 +10,7 @@ interface RecipeCardProps {
   onPreview?: (recipe: Recipe) => void;
   isDraggable?: boolean;
   className?: string;
+  showSelectButton?: boolean;
 }
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({
@@ -17,6 +19,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   onPreview,
   isDraggable = false,
   className = '',
+  showSelectButton = false,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
@@ -50,8 +53,25 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
   // Handle card click
   const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent click when clicking select button
+    if ((e.target as HTMLElement).closest('.select-button')) {
+      return;
+    }
+    
     e.preventDefault();
-    onSelect?.(recipe);
+    if (showSelectButton && onSelect) {
+      onSelect(recipe);
+    } else {
+      onSelect?.(recipe);
+    }
+  };
+
+  // Handle select button click
+  const handleSelectClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onSelect) {
+      onSelect(recipe);
+    }
   };
 
   // Handle preview toggle
@@ -122,17 +142,33 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           </div>
         )}
 
-        {/* Preview Button */}
-        <button
-          onClick={handlePreviewClick}
-          className="absolute bottom-2 right-2 p-1.5 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-          title="Preview recipe"
-        >
-          <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-        </button>
+        {/* Select Button - Show when in selection mode */}
+        {showSelectButton && onSelect && (
+          <div className="absolute bottom-2 right-2">
+            <button
+              onClick={handleSelectClick}
+              className="select-button p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-all duration-200 hover:scale-105"
+              title={`Select ${recipe.name}`}
+              aria-label={`Select ${recipe.name} for meal plan`}
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Preview Button - Show when not in selection mode */}
+        {!showSelectButton && (
+          <button
+            onClick={handlePreviewClick}
+            className="absolute bottom-2 right-2 p-1.5 bg-white bg-opacity-90 hover:bg-opacity-100 rounded-full shadow-sm opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            title="Preview recipe"
+          >
+            <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Recipe Content */}

@@ -11,10 +11,10 @@ interface MealSlotComponentProps {
   onMealAssign: (dayIndex: number, mealType: MealType, recipe: Recipe) => void;
   onMealRemove: (dayIndex: number, mealType: MealType) => void;
   onMealSlotClick: (dayIndex: number, mealType: MealType) => void;
-  onMealSwap?: (sourceLocation: { dayIndex: number; mealType: MealType }, targetDayIndex: number, targetMealType: MealType, recipe: Recipe) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
+  weekStartDate?: Date;
 }
 
 export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
@@ -23,10 +23,10 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
   meal,
   onMealAssign,
   onMealRemove,
-  onMealSwap,
   onSwapMeals,
   onCopyMeal,
   onDuplicateDay,
+  weekStartDate,
 }) => {
   const handleMealAssign = (recipe: Recipe) => {
     onMealAssign(dayIndex, mealType, recipe);
@@ -36,12 +36,6 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
     onMealRemove(dayIndex, mealType);
   };
 
-  const handleMealSwap = (sourceLocation: { dayIndex: number; mealType: MealType }, recipe: Recipe) => {
-    if (onMealSwap) {
-      onMealSwap(sourceLocation, dayIndex, mealType, recipe);
-    }
-  };
-
   return (
     <MealSlot
       dayIndex={dayIndex}
@@ -49,10 +43,10 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
       meal={meal}
       onMealAssign={handleMealAssign}
       onMealRemove={handleMealRemove}
-      onMealSwap={handleMealSwap}
       onSwapMeals={onSwapMeals}
       onCopyMeal={onCopyMeal}
       onDuplicateDay={onDuplicateDay}
+      weekStartDate={weekStartDate}
     />
   );
 };

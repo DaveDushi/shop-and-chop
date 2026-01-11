@@ -3,7 +3,7 @@ import { format, addDays } from 'date-fns';
 import { MealPlan, MealType, MealSlot } from '../../types/MealPlan.types';
 import { Recipe } from '../../types/Recipe.types';
 import { DayColumn } from './DayColumn';
-import { MealCard } from './MealCard';
+import { MealSlotComponent } from './MealSlotComponent';
 import { Trash2 } from 'lucide-react';
 
 interface CalendarGridProps {
@@ -12,7 +12,6 @@ interface CalendarGridProps {
   onMealAssign: (dayIndex: number, mealType: MealType, recipe: Recipe) => void;
   onMealRemove: (dayIndex: number, mealType: MealType) => void;
   onMealSlotClick: (dayIndex: number, mealType: MealType) => void;
-  onMealSwap?: (sourceLocation: { dayIndex: number; mealType: MealType }, targetDayIndex: number, targetMealType: MealType, recipe: Recipe) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onClearDay?: (dayIndex: number) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
@@ -29,7 +28,6 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onMealAssign,
   onMealRemove,
   onMealSlotClick,
-  onMealSwap,
   onSwapMeals,
   onClearDay,
   onCopyMeal,
@@ -132,38 +130,20 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 {/* Mobile Meal Slots */}
                 <div className="p-4 space-y-4">
                   {(['breakfast', 'lunch', 'dinner'] as const).map((mealType) => (
-                    <div key={mealType} className="border border-gray-200 rounded-lg p-3">
-                      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
-                        {mealType}
-                      </div>
-                      {dayMeals[mealType] ? (
-                        <MealCard
-                          meal={dayMeals[mealType]}
-                          dayIndex={dayIndex}
-                          mealType={mealType}
-                          onRemove={(e?: React.MouseEvent) => {
-                            if (e) {
-                              e.stopPropagation();
-                            }
-                            onMealRemove(dayIndex, mealType);
-                          }}
-                          onClick={() => onMealSlotClick(dayIndex, mealType)}
-                          onCopyMeal={onCopyMeal}
-                          onSwapMeals={onSwapMeals}
-                          onDuplicateDay={onDuplicateDay}
-                        />
-                      ) : (
-                        <div 
-                          className="flex items-center justify-center min-h-[80px] border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 active:bg-gray-50 transition-colors duration-200 cursor-pointer"
-                          onClick={() => onMealSlotClick(dayIndex, mealType)}
-                        >
-                          <div className="text-center text-gray-400">
-                            <div className="text-xl mb-1">+</div>
-                            <div className="text-sm">Add meal</div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                    <MealSlotComponent
+                      key={`${dayKey}-${mealType}`}
+                      dayIndex={dayIndex}
+                      mealType={mealType}
+                      mealLabel={mealType}
+                      meal={dayMeals[mealType]}
+                      onMealAssign={onMealAssign}
+                      onMealRemove={onMealRemove}
+                      onMealSlotClick={onMealSlotClick}
+                      onSwapMeals={onSwapMeals}
+                      onCopyMeal={onCopyMeal}
+                      onDuplicateDay={onDuplicateDay}
+                      weekStartDate={weekStartDate}
+                    />
                   ))}
                 </div>
               </div>
@@ -185,11 +165,11 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 onMealAssign={onMealAssign}
                 onMealRemove={onMealRemove}
                 onMealSlotClick={onMealSlotClick}
-                onMealSwap={onMealSwap}
                 onSwapMeals={onSwapMeals}
                 onClearDay={onClearDay}
                 onCopyMeal={onCopyMeal}
                 onDuplicateDay={onDuplicateDay}
+                weekStartDate={weekStartDate}
               />
             );
           })}

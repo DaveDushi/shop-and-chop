@@ -21,15 +21,7 @@ export const useMealPlan = (weekStart: Date) => {
   } = useQuery({
     queryKey: ['mealPlan', user?.id, weekKey],
     queryFn: async () => {
-      try {
-        return await mealPlanService.getMealPlan(user!.id, weekStartNormalized);
-      } catch (error: any) {
-        // If meal plan doesn't exist (404), return null instead of throwing
-        if (error.response?.status === 404) {
-          return null;
-        }
-        throw error;
-      }
+      return await mealPlanService.getMealPlan(user!.id, weekStartNormalized);
     },
     enabled: !!user?.id,
     staleTime: 2 * 60 * 1000, // 2 minutes
@@ -39,39 +31,56 @@ export const useMealPlan = (weekStart: Date) => {
   const updateMealPlanMutation = useMutation({
     mutationFn: (updatedMealPlan: MealPlan) => mealPlanService.updateMealPlan(updatedMealPlan),
     onSuccess: (updatedMealPlan) => {
-      // Update the cache with the new data
+      // Update the cache with the new data (use the ID from the response)
       queryClient.setQueryData(['mealPlan', user?.id, weekKey], updatedMealPlan);
     },
     onError: (error) => {
       console.error('Failed to update meal plan:', error);
-      // Optionally refetch to get the latest data
+      // Refetch to get the latest data and sync the cache
       refetch();
     },
   });
 
-  // Mutation for creating meal plan
-  const createMealPlanMutation = useMutation({
-    mutationFn: () => mealPlanService.createMealPlan(user!.id, weekStartNormalized),
-    onSuccess: (newMealPlan) => {
-      // Update the cache with the new data
-      queryClient.setQueryData(['mealPlan', user?.id, weekKey], newMealPlan);
-    },
-  });
-
   // Helper function to assign a meal to a slot
-  const assignMeal = (dayIndex: number, mealType: MealType, recipe: Recipe, servings: number = recipe.servings) => {
-    // If no meal plan exists, create one first
+  const assignMeal = async (dayIndex: number, mealType: MealType, recipe: Recipe, servings: number = recipe.servings) => {
+    // Check if the same recipe is already assigned to this slot
+    const dayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][dayIndex];
+    const existingMeal = mealPlan?.meals[dayKey]?.[mealType];
+    if (existingMeal && existingMeal.recipeId === recipe.id) {
+      // Allow duplicates but show a confirmation
+      const shouldReplace = window.confirm(
+        `"${recipe.title}" is already planned for ${dayKey} ${mealType}. Do you want to replace it?`
+      );
+      if (!shouldReplace) {
+        return;
+      }
+    }
+
+    // If no meal plan exists, refetch to trigger backend creation
     if (!mealPlan) {
-      createMealPlanMutation.mutate();
+      try {
+        const { data: newMealPlan } = await refetch();
+        if (!newMealPlan) {
+          console.error('Failed to get or create meal plan');
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to get meal plan:', error);
+        return;
+      }
+    }
+
+    const currentMealPlan = mealPlan || queryClient.getQueryData(['mealPlan', user?.id, weekKey]) as MealPlan;
+    if (!currentMealPlan) {
+      console.error('No meal plan available after refetch');
       return;
     }
 
-    const dayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][dayIndex];
     const scheduledDate = new Date(weekStartNormalized);
     scheduledDate.setDate(scheduledDate.getDate() + dayIndex);
 
     const newMealSlot: MealSlot = {
-      id: `${mealPlan.id}-${dayKey}-${mealType}-${Date.now()}`,
+      id: `${currentMealPlan.id}-${dayKey}-${mealType}-${Date.now()}`,
       recipeId: recipe.id,
       recipe,
       servings,
@@ -80,11 +89,11 @@ export const useMealPlan = (weekStart: Date) => {
     };
 
     const updatedMealPlan: MealPlan = {
-      ...mealPlan,
+      ...currentMealPlan,
       meals: {
-        ...mealPlan.meals,
+        ...currentMealPlan.meals,
         [dayKey]: {
-          ...mealPlan.meals[dayKey],
+          ...currentMealPlan.meals[dayKey],
           [mealType]: newMealSlot,
         },
       },
@@ -244,10 +253,14 @@ export const useMealPlan = (weekStart: Date) => {
     const sourceMeal = mealPlan.meals[sourceDayKey]?.[sourceMealType];
     const targetMeal = mealPlan.meals[targetDayKey]?.[targetMealType];
 
+    // If source meal doesn't exist, nothing to swap
+    if (!sourceMeal) return;
+
     // Create updated meal slots with proper scheduling
     let updatedSourceMeal: MealSlot | undefined;
     let updatedTargetMeal: MealSlot | undefined;
 
+    // If target slot has a meal, move it to source slot
     if (targetMeal) {
       const sourceScheduledDate = new Date(weekStartNormalized);
       sourceScheduledDate.setDate(sourceScheduledDate.getDate() + sourceDayIndex);
@@ -259,18 +272,21 @@ export const useMealPlan = (weekStart: Date) => {
         mealType: sourceMealType,
       };
     }
-
-    if (sourceMeal) {
-      const targetScheduledDate = new Date(weekStartNormalized);
-      targetScheduledDate.setDate(targetScheduledDate.getDate() + targetDayIndex);
-
-      updatedTargetMeal = {
-        ...sourceMeal,
-        id: `${mealPlan.id}-${targetDayKey}-${targetMealType}-${Date.now()}`,
-        scheduledFor: targetScheduledDate,
-        mealType: targetMealType,
-      };
+    // If target slot is empty, clear the source slot
+    else {
+      updatedSourceMeal = undefined;
     }
+
+    // Move source meal to target slot
+    const targetScheduledDate = new Date(weekStartNormalized);
+    targetScheduledDate.setDate(targetScheduledDate.getDate() + targetDayIndex);
+
+    updatedTargetMeal = {
+      ...sourceMeal,
+      id: `${mealPlan.id}-${targetDayKey}-${targetMealType}-${Date.now()}`,
+      scheduledFor: targetScheduledDate,
+      mealType: targetMealType,
+    };
 
     const updatedMealPlan: MealPlan = {
       ...mealPlan,
@@ -325,7 +341,6 @@ export const useMealPlan = (weekStart: Date) => {
     isLoading,
     error,
     isUpdating: updateMealPlanMutation.isPending,
-    isCreating: createMealPlanMutation.isPending,
     assignMeal,
     removeMeal,
     clearDay,
@@ -334,13 +349,6 @@ export const useMealPlan = (weekStart: Date) => {
     duplicateWeek,
     swapMeals,
     updateServings,
-    createMealPlan: createMealPlanMutation.mutate,
-    getOrCreateMealPlan: () => {
-      if (!mealPlan) {
-        createMealPlanMutation.mutate();
-      }
-      return mealPlan;
-    },
     refetch,
   };
 };

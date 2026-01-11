@@ -29,13 +29,13 @@ const MEAL_TYPES: { value: MealType; label: string }[] = [
 
 const CopyMenu: React.FC<CopyMenuProps> = ({ dayIndex, mealType, onCopyMeal, onSwapMeals, onClose, isSwapMode = false }) => {
   return (
-    <div className="absolute left-full top-0 ml-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-50 min-w-[200px]">
-      <div className="px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+    <div className="absolute left-full top-0 ml-2 bg-white border border-gray-300 rounded-lg shadow-xl py-2 z-[60] min-w-[220px] max-h-[400px] overflow-y-auto">
+      <div className="px-4 py-2 text-sm font-semibold text-gray-700 border-b border-gray-200 bg-gray-50">
         {isSwapMode ? 'Swap with:' : 'Copy to:'}
       </div>
       {DAYS_OF_WEEK.map((dayName, targetDayIndex) => (
-        <div key={dayName} className="px-3 py-1">
-          <div className="text-xs font-medium text-gray-700 mb-1">{dayName}</div>
+        <div key={dayName} className="px-2 py-1">
+          <div className="text-sm font-medium text-gray-800 mb-2 px-2 py-1 bg-gray-50 rounded">{dayName}</div>
           {MEAL_TYPES.map(({ value: targetMealType, label }) => {
             const isCurrentSlot = targetDayIndex === dayIndex && targetMealType === mealType;
             return (
@@ -52,10 +52,10 @@ const CopyMenu: React.FC<CopyMenuProps> = ({ dayIndex, mealType, onCopyMeal, onS
                   onClose();
                 }}
                 disabled={isCurrentSlot}
-                className={`w-full text-left px-2 py-1 text-xs rounded transition-colors duration-150 ${
+                className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors duration-150 ${
                   isCurrentSlot
-                    ? 'text-gray-400 cursor-not-allowed'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? 'text-gray-400 cursor-not-allowed bg-gray-100'
+                    : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700'
                 }`}
               >
                 {label} {isCurrentSlot && '(current)'}
@@ -132,7 +132,7 @@ export const MealCardContextMenu: React.FC<MealCardContextMenuProps> = ({
           setShowCopyMenu(false);
           setShowSwapMenu(false);
         }}
-        className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded transition-colors duration-150"
+        className="p-1.5 text-gray-500 hover:text-gray-700 hover:bg-white hover:shadow-md rounded-full border border-gray-200 bg-white/90 backdrop-blur-sm transition-all duration-150"
         title="More options"
         aria-label="More meal options"
       >
@@ -140,89 +140,94 @@ export const MealCardContextMenu: React.FC<MealCardContextMenuProps> = ({
       </button>
 
       {isOpen && (
-        <div
-          ref={menuRef}
-          className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-40 min-w-[160px]"
-        >
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setShowCopyMenu(!showCopyMenu);
-              setShowSwapMenu(false);
-            }}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors duration-150"
+        <>
+          {/* Backdrop for mobile */}
+          <div className="fixed inset-0 z-[45] md:hidden" onClick={() => setIsOpen(false)} />
+          
+          <div
+            ref={menuRef}
+            className="absolute right-0 top-full mt-2 bg-white border border-gray-300 rounded-lg shadow-xl py-2 z-[50] min-w-[180px] max-w-[220px]"
           >
-            <Copy className="h-4 w-4" />
-            <span>Copy meal</span>
-            <ArrowRight className="h-3 w-3 ml-auto" />
-          </button>
-
-          {onSwapMeals && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowSwapMenu(!showSwapMenu);
-                setShowCopyMenu(false);
-              }}
-              className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors duration-150"
-            >
-              <ArrowLeftRight className="h-4 w-4" />
-              <span>Swap meal</span>
-              <ArrowRight className="h-3 w-3 ml-auto" />
-            </button>
-          )}
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleDuplicateDay();
-            }}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2 transition-colors duration-150"
-          >
-            <Copy className="h-4 w-4" />
-            <span>Duplicate day</span>
-          </button>
-
-          <hr className="my-1 border-gray-100" />
-
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemoveMeal(e);
-              setIsOpen(false);
-            }}
-            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2 transition-colors duration-150"
-          >
-            <Trash2 className="h-4 w-4" />
-            <span>Remove meal</span>
-          </button>
-
-          {showCopyMenu && (
-            <CopyMenu
-              dayIndex={dayIndex}
-              mealType={mealType}
-              onCopyMeal={onCopyMeal}
-              onClose={() => {
-                setShowCopyMenu(false);
-                setIsOpen(false);
-              }}
-            />
-          )}
-
-          {showSwapMenu && onSwapMeals && (
-            <CopyMenu
-              dayIndex={dayIndex}
-              mealType={mealType}
-              onCopyMeal={onCopyMeal}
-              onSwapMeals={onSwapMeals}
-              isSwapMode={true}
-              onClose={() => {
+                setShowCopyMenu(!showCopyMenu);
                 setShowSwapMenu(false);
+              }}
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center space-x-3 transition-colors duration-150"
+            >
+              <Copy className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1">Copy meal</span>
+              <ArrowRight className="h-3 w-3 flex-shrink-0" />
+            </button>
+
+            {onSwapMeals && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowSwapMenu(!showSwapMenu);
+                  setShowCopyMenu(false);
+                }}
+                className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center space-x-3 transition-colors duration-150"
+              >
+                <ArrowLeftRight className="h-4 w-4 flex-shrink-0" />
+                <span className="flex-1">Swap meal</span>
+                <ArrowRight className="h-3 w-3 flex-shrink-0" />
+              </button>
+            )}
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDuplicateDay();
+              }}
+              className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 flex items-center space-x-3 transition-colors duration-150"
+            >
+              <Copy className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1">Duplicate day</span>
+            </button>
+
+            <hr className="my-2 border-gray-200" />
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemoveMeal(e);
                 setIsOpen(false);
               }}
-            />
-          )}
-        </div>
+              className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 flex items-center space-x-3 transition-colors duration-150"
+            >
+              <Trash2 className="h-4 w-4 flex-shrink-0" />
+              <span className="flex-1">Remove meal</span>
+            </button>
+
+            {showCopyMenu && (
+              <CopyMenu
+                dayIndex={dayIndex}
+                mealType={mealType}
+                onCopyMeal={onCopyMeal}
+                onClose={() => {
+                  setShowCopyMenu(false);
+                  setIsOpen(false);
+                }}
+              />
+            )}
+
+            {showSwapMenu && onSwapMeals && (
+              <CopyMenu
+                dayIndex={dayIndex}
+                mealType={mealType}
+                onCopyMeal={onCopyMeal}
+                onSwapMeals={onSwapMeals}
+                isSwapMode={true}
+                onClose={() => {
+                  setShowSwapMenu(false);
+                  setIsOpen(false);
+                }}
+              />
+            )}
+          </div>
+        </>
       )}
     </div>
   );

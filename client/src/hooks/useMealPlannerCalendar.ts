@@ -103,7 +103,6 @@ export const useMealPlannerCalendar = () => {
     duplicateWeek: handleDuplicateWeek,
     swapMeals: handleSwapMeals,
     updateServings: mealPlan.updateServings,
-    createMealPlan: mealPlan.createMealPlan,
 
     // Undo/Redo functionality
     undo: mealPlan.undo,

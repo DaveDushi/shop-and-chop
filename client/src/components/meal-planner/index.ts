@@ -8,4 +8,5 @@ export { MealCard } from './MealCard';
 export { MealPlannerCalendar } from './MealPlannerCalendar';
 export { RecipeSidebar } from './RecipeSidebar';
 export { RecipeCard } from './RecipeCard';
+export { RecipeSelectionModal } from './RecipeSelectionModal';
 export { UndoRedoControls } from './UndoRedoControls';

@@ -12,7 +12,6 @@ export const mealPlanService: MealPlanService = {
     const weekStartString = weekStart.toISOString().split('T')[0];
     const response = await api.get<MealPlanDetailResponse>(`/meal-plans`, {
       params: {
-        userId,
         weekStart: weekStartString,
       },
     });

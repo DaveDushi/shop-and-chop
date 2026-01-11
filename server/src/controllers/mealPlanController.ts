@@ -14,7 +14,9 @@ export const getMealPlans = asyncHandler(async (req: AuthenticatedRequest, res: 
   // If weekStart is provided, get meal plan for specific week
   if (weekStart) {
     const weekStartDate = new Date(weekStart as string);
-    const mealPlan = await prisma.mealPlan.findUnique({
+    
+    // Try to find existing meal plan
+    let mealPlan = await prisma.mealPlan.findUnique({
       where: {
         userId_weekStartDate: {
           userId: req.user.userId,
@@ -34,8 +36,25 @@ export const getMealPlans = asyncHandler(async (req: AuthenticatedRequest, res: 
       }
     });
 
+    // If no meal plan exists, create an empty one
     if (!mealPlan) {
-      throw createError('Meal plan not found for this week', 404);
+      mealPlan = await prisma.mealPlan.create({
+        data: {
+          userId: req.user.userId,
+          weekStartDate
+        },
+        include: {
+          meals: {
+            include: {
+              recipe: {
+                include: {
+                  ingredients: true
+                }
+              }
+            }
+          }
+        }
+      });
     }
 
     return res.json({ mealPlan });
@@ -133,6 +152,10 @@ export const getMealPlanById = asyncHandler(async (req: AuthenticatedRequest, re
 
   const { id } = req.params;
 
+  if (!id) {
+    throw createError('Meal plan ID is required', 400);
+  }
+
   const mealPlan = await prisma.mealPlan.findFirst({
     where: { 
       id,
@@ -166,16 +189,38 @@ export const updateMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
   const { id } = req.params;
   const { weekStartDate, meals } = req.body;
 
+  if (!id) {
+    throw createError('Meal plan ID is required', 400);
+  }
+
   // Check if meal plan exists and belongs to user
-  const existingMealPlan = await prisma.mealPlan.findFirst({
+  let existingMealPlan = await prisma.mealPlan.findFirst({
     where: { 
       id,
       userId: req.user.userId 
     }
   });
 
+  // If meal plan doesn't exist by ID, try to find by user and week start date
   if (!existingMealPlan) {
-    throw createError('Meal plan not found', 404);
+    existingMealPlan = await prisma.mealPlan.findUnique({
+      where: {
+        userId_weekStartDate: {
+          userId: req.user.userId,
+          weekStartDate: new Date(weekStartDate)
+        }
+      }
+    });
+  }
+
+  // If still no meal plan exists, create a new one
+  if (!existingMealPlan) {
+    existingMealPlan = await prisma.mealPlan.create({
+      data: {
+        userId: req.user.userId,
+        weekStartDate: new Date(weekStartDate)
+      }
+    });
   }
 
   // Verify all recipes exist
@@ -188,9 +233,9 @@ export const updateMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
     throw createError('One or more recipes not found', 404);
   }
 
-  // Update meal plan
+  // Update meal plan using the existing meal plan's ID
   const updatedMealPlan = await prisma.mealPlan.update({
-    where: { id },
+    where: { id: existingMealPlan.id },
     data: {
       weekStartDate: new Date(weekStartDate),
       meals: {
@@ -229,6 +274,10 @@ export const deleteMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
 
   const { id } = req.params;
 
+  if (!id) {
+    throw createError('Meal plan ID is required', 400);
+  }
+
   // Check if meal plan exists and belongs to user
   const mealPlan = await prisma.mealPlan.findFirst({
     where: { 
@@ -254,6 +303,10 @@ export const generateShoppingList = asyncHandler(async (req: AuthenticatedReques
   }
 
   const { id } = req.params;
+
+  if (!id) {
+    throw createError('Meal plan ID is required', 400);
+  }
 
   // Get meal plan with all meals and ingredients
   const mealPlan = await prisma.mealPlan.findFirst({

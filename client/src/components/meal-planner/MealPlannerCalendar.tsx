@@ -8,7 +8,6 @@ import { CalendarGrid } from './CalendarGrid';
 import { RecipeSidebar } from './RecipeSidebar';
 import { DragLayer } from './DragLayer';
 import { Recipe } from '../../types/Recipe.types';
-import { MealType } from '../../types/MealPlan.types';
 
 interface MealPlannerCalendarProps {
   initialWeek?: Date;
@@ -84,19 +83,6 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [sidebarCollapsed]);
-
-  // Handle meal swap between slots
-  const handleMealSwap = (
-    sourceLocation: { dayIndex: number; mealType: MealType },
-    targetDayIndex: number,
-    targetMealType: MealType,
-    recipe: Recipe
-  ) => {
-    // Remove meal from source location
-    removeMeal(sourceLocation.dayIndex, sourceLocation.mealType);
-    // Add meal to target location
-    assignMeal(targetDayIndex, targetMealType, recipe);
-  };
 
   // Handle recipe selection from sidebar
   const handleRecipeSelect = (recipe: Recipe) => {
@@ -235,7 +221,6 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
               onMealAssign={assignMeal}
               onMealRemove={removeMeal}
               onMealSlotClick={handleMealSlotClick}
-              onMealSwap={handleMealSwap}
               onSwapMeals={swapMeals}
               onClearDay={clearDay}
               onCopyMeal={copyMeal}

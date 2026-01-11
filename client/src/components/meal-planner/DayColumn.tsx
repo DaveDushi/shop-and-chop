@@ -20,6 +20,7 @@ interface DayColumnProps {
   onClearDay?: (dayIndex: number) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
+  weekStartDate?: Date;
 }
 
 const MEAL_TYPES: MealType[] = ['breakfast', 'lunch', 'dinner'];
@@ -36,11 +37,11 @@ export const DayColumn: React.FC<DayColumnProps> = ({
   onMealAssign,
   onMealRemove,
   onMealSlotClick,
-  onMealSwap,
   onSwapMeals,
   onClearDay,
   onCopyMeal,
   onDuplicateDay,
+  weekStartDate,
 }) => {
   // Check if the day has any meals
   const hasMeals = meals.breakfast || meals.lunch || meals.dinner;
@@ -54,7 +55,7 @@ export const DayColumn: React.FC<DayColumnProps> = ({
   };
 
   return (
-    <div className="border-r border-gray-200 last:border-r-0 flex flex-col md:min-h-0 min-h-[400px]">
+    <div className="border-r border-gray-200 last:border-r-0 flex flex-col md:min-h-[500px] min-h-[400px]">
       {/* Mobile Day Header - only show on mobile when using single column layout */}
       <div className="md:hidden bg-gray-50 p-3 border-b border-gray-200 flex items-center justify-between">
         <div className="font-semibold text-gray-900 capitalize">{dayKey}</div>
@@ -80,10 +81,10 @@ export const DayColumn: React.FC<DayColumnProps> = ({
           onMealAssign={onMealAssign}
           onMealRemove={onMealRemove}
           onMealSlotClick={onMealSlotClick}
-          onMealSwap={onMealSwap}
           onSwapMeals={onSwapMeals}
           onCopyMeal={onCopyMeal}
           onDuplicateDay={onDuplicateDay}
+          weekStartDate={weekStartDate}
         />
       ))}
 
