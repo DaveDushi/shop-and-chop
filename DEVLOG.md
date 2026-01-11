@@ -21,3 +21,10 @@ Shop&Chop is a web application that eliminates the tedious process of meal plann
 - Set up my PRD.md file 
 - added references to my .kiro folder for all the tech stacks im using 
 - asked kiro for an init prompt and then ran it
+
+### Day 3 (Jan 11) - Core Architecture [5h]
+- Ran @prime and the @plan-feature to have the agent choose a feature to start planning
+- Chose the Meal Planner Calendar to start off with. (Core feature)
+- Had Kiro plan -> design -> task 
+- Went through all tasks for the feature it built.
+- Gave screenshots and error messages when something wasnt working.
