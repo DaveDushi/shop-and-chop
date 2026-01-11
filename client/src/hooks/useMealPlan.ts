@@ -115,6 +115,182 @@ export const useMealPlan = (weekStart: Date) => {
     updateMealPlanMutation.mutate(updatedMealPlan);
   };
 
+  // Helper function to clear all meals from a specific day
+  const clearDay = (dayIndex: number) => {
+    if (!mealPlan) return;
+
+    const dayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][dayIndex];
+
+    const updatedMealPlan: MealPlan = {
+      ...mealPlan,
+      meals: {
+        ...mealPlan.meals,
+        [dayKey]: {
+          breakfast: undefined,
+          lunch: undefined,
+          dinner: undefined,
+        },
+      },
+      updatedAt: new Date(),
+    };
+
+    updateMealPlanMutation.mutate(updatedMealPlan);
+  };
+
+  // Helper function to copy a meal to another slot
+  const copyMeal = (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => {
+    if (!mealPlan) return;
+
+    const sourceDayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][sourceDayIndex];
+    const targetDayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][targetDayIndex];
+    
+    const sourceMeal = mealPlan.meals[sourceDayKey]?.[sourceMealType];
+    if (!sourceMeal) return;
+
+    // Create a new meal slot with updated scheduling
+    const targetScheduledDate = new Date(weekStartNormalized);
+    targetScheduledDate.setDate(targetScheduledDate.getDate() + targetDayIndex);
+
+    const newMealSlot: MealSlot = {
+      id: `${mealPlan.id}-${targetDayKey}-${targetMealType}-${Date.now()}`,
+      recipeId: sourceMeal.recipeId,
+      recipe: sourceMeal.recipe,
+      servings: sourceMeal.servings,
+      scheduledFor: targetScheduledDate,
+      mealType: targetMealType,
+      notes: sourceMeal.notes,
+    };
+
+    const updatedMealPlan: MealPlan = {
+      ...mealPlan,
+      meals: {
+        ...mealPlan.meals,
+        [targetDayKey]: {
+          ...mealPlan.meals[targetDayKey],
+          [targetMealType]: newMealSlot,
+        },
+      },
+      updatedAt: new Date(),
+    };
+
+    updateMealPlanMutation.mutate(updatedMealPlan);
+  };
+
+  // Helper function to duplicate an entire day
+  const duplicateDay = (sourceDayIndex: number, targetDayIndex: number) => {
+    if (!mealPlan) return;
+
+    const sourceDayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][sourceDayIndex];
+    const targetDayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][targetDayIndex];
+    
+    const sourceDayMeals = mealPlan.meals[sourceDayKey];
+    if (!sourceDayMeals) return;
+
+    // Create new meal slots for the target day
+    const targetDayMeals: { breakfast?: MealSlot; lunch?: MealSlot; dinner?: MealSlot } = {};
+    
+    (['breakfast', 'lunch', 'dinner'] as const).forEach((mealType) => {
+      const sourceMeal = sourceDayMeals[mealType];
+      if (sourceMeal) {
+        const targetScheduledDate = new Date(weekStartNormalized);
+        targetScheduledDate.setDate(targetScheduledDate.getDate() + targetDayIndex);
+
+        targetDayMeals[mealType] = {
+          id: `${mealPlan.id}-${targetDayKey}-${mealType}-${Date.now()}`,
+          recipeId: sourceMeal.recipeId,
+          recipe: sourceMeal.recipe,
+          servings: sourceMeal.servings,
+          scheduledFor: targetScheduledDate,
+          mealType,
+          notes: sourceMeal.notes,
+        };
+      }
+    });
+
+    const updatedMealPlan: MealPlan = {
+      ...mealPlan,
+      meals: {
+        ...mealPlan.meals,
+        [targetDayKey]: targetDayMeals,
+      },
+      updatedAt: new Date(),
+    };
+
+    updateMealPlanMutation.mutate(updatedMealPlan);
+  };
+
+  // Helper function to duplicate the entire week (useful for meal prep)
+  const duplicateWeek = (targetWeekStart: Date) => {
+    if (!mealPlan) return;
+
+    // This would typically create a new meal plan for the target week
+    // For now, we'll just log the action as it requires more complex state management
+    console.log('Duplicate week functionality - would create meal plan for:', targetWeekStart);
+    // TODO: Implement full week duplication with new meal plan creation
+  };
+
+  // Helper function to swap meals between two slots
+  const swapMeals = (
+    sourceDayIndex: number, 
+    sourceMealType: MealType, 
+    targetDayIndex: number, 
+    targetMealType: MealType
+  ) => {
+    if (!mealPlan) return;
+
+    const sourceDayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][sourceDayIndex];
+    const targetDayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][targetDayIndex];
+    
+    const sourceMeal = mealPlan.meals[sourceDayKey]?.[sourceMealType];
+    const targetMeal = mealPlan.meals[targetDayKey]?.[targetMealType];
+
+    // Create updated meal slots with proper scheduling
+    let updatedSourceMeal: MealSlot | undefined;
+    let updatedTargetMeal: MealSlot | undefined;
+
+    if (targetMeal) {
+      const sourceScheduledDate = new Date(weekStartNormalized);
+      sourceScheduledDate.setDate(sourceScheduledDate.getDate() + sourceDayIndex);
+
+      updatedSourceMeal = {
+        ...targetMeal,
+        id: `${mealPlan.id}-${sourceDayKey}-${sourceMealType}-${Date.now()}`,
+        scheduledFor: sourceScheduledDate,
+        mealType: sourceMealType,
+      };
+    }
+
+    if (sourceMeal) {
+      const targetScheduledDate = new Date(weekStartNormalized);
+      targetScheduledDate.setDate(targetScheduledDate.getDate() + targetDayIndex);
+
+      updatedTargetMeal = {
+        ...sourceMeal,
+        id: `${mealPlan.id}-${targetDayKey}-${targetMealType}-${Date.now()}`,
+        scheduledFor: targetScheduledDate,
+        mealType: targetMealType,
+      };
+    }
+
+    const updatedMealPlan: MealPlan = {
+      ...mealPlan,
+      meals: {
+        ...mealPlan.meals,
+        [sourceDayKey]: {
+          ...mealPlan.meals[sourceDayKey],
+          [sourceMealType]: updatedSourceMeal,
+        },
+        [targetDayKey]: {
+          ...mealPlan.meals[targetDayKey],
+          [targetMealType]: updatedTargetMeal,
+        },
+      },
+      updatedAt: new Date(),
+    };
+
+    updateMealPlanMutation.mutate(updatedMealPlan);
+  };
+
   // Helper function to update serving size
   const updateServings = (dayIndex: number, mealType: MealType, servings: number) => {
     if (!mealPlan) return;
@@ -152,6 +328,11 @@ export const useMealPlan = (weekStart: Date) => {
     isCreating: createMealPlanMutation.isPending,
     assignMeal,
     removeMeal,
+    clearDay,
+    copyMeal,
+    duplicateDay,
+    duplicateWeek,
+    swapMeals,
     updateServings,
     createMealPlan: createMealPlanMutation.mutate,
     getOrCreateMealPlan: () => {

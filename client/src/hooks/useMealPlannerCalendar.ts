@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
 import { useCalendarState } from './useCalendarState';
-import { useMealPlan } from './useMealPlan';
+import { useMealPlanWithHistory } from './useMealPlanWithHistory';
 import { useRecipes } from './useRecipes';
 import { MealType } from '../types/MealPlan.types';
 import { Recipe } from '../types/Recipe.types';
 
 export const useMealPlannerCalendar = () => {
   const calendarState = useCalendarState();
-  const mealPlan = useMealPlan(calendarState.currentWeek);
+  const mealPlan = useMealPlanWithHistory(calendarState.currentWeek);
   
   // Default recipe search (can be customized later)
   const recipes = useRecipes('', {});
@@ -21,6 +21,41 @@ export const useMealPlannerCalendar = () => {
   // Enhanced meal removal with UI state management
   const handleMealRemove = useCallback((dayIndex: number, mealType: MealType) => {
     mealPlan.removeMeal(dayIndex, mealType);
+    calendarState.clearMealSlotSelection();
+  }, [mealPlan, calendarState]);
+
+  // Handle clearing all meals from a day
+  const handleClearDay = useCallback((dayIndex: number) => {
+    mealPlan.clearDay(dayIndex);
+    calendarState.clearMealSlotSelection();
+  }, [mealPlan, calendarState]);
+
+  // Handle copying a meal to another slot
+  const handleCopyMeal = useCallback((sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => {
+    mealPlan.copyMeal(sourceDayIndex, sourceMealType, targetDayIndex, targetMealType);
+    calendarState.clearMealSlotSelection();
+  }, [mealPlan, calendarState]);
+
+  // Handle duplicating an entire day
+  const handleDuplicateDay = useCallback((sourceDayIndex: number, targetDayIndex: number) => {
+    mealPlan.duplicateDay(sourceDayIndex, targetDayIndex);
+    calendarState.clearMealSlotSelection();
+  }, [mealPlan, calendarState]);
+
+  // Handle duplicating the entire week
+  const handleDuplicateWeek = useCallback((targetWeekStart: Date) => {
+    mealPlan.duplicateWeek(targetWeekStart);
+    calendarState.clearMealSlotSelection();
+  }, [mealPlan, calendarState]);
+
+  // Handle swapping meals between two slots
+  const handleSwapMeals = useCallback((
+    sourceDayIndex: number, 
+    sourceMealType: MealType, 
+    targetDayIndex: number, 
+    targetMealType: MealType
+  ) => {
+    mealPlan.swapMeals(sourceDayIndex, sourceMealType, targetDayIndex, targetMealType);
     calendarState.clearMealSlotSelection();
   }, [mealPlan, calendarState]);
 
@@ -62,8 +97,24 @@ export const useMealPlannerCalendar = () => {
     isUpdating: mealPlan.isUpdating,
     assignMeal: handleMealAssign,
     removeMeal: handleMealRemove,
+    clearDay: handleClearDay,
+    copyMeal: handleCopyMeal,
+    duplicateDay: handleDuplicateDay,
+    duplicateWeek: handleDuplicateWeek,
+    swapMeals: handleSwapMeals,
     updateServings: mealPlan.updateServings,
     createMealPlan: mealPlan.createMealPlan,
+
+    // Undo/Redo functionality
+    undo: mealPlan.undo,
+    redo: mealPlan.redo,
+    canUndo: mealPlan.canUndo,
+    canRedo: mealPlan.canRedo,
+    getCurrentActionDescription: mealPlan.getCurrentActionDescription,
+    getPreviousActionDescription: mealPlan.getPreviousActionDescription,
+    getNextActionDescription: mealPlan.getNextActionDescription,
+    historyLength: mealPlan.historyLength,
+    currentHistoryIndex: mealPlan.currentHistoryIndex,
 
     // Recipe data
     recipes: recipes.data || [],

@@ -75,20 +75,20 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
   - Ensure UI is optimized for mobile and has a good UI/UX
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 6. Implement drag-and-drop core functionality
-  - [ ] 6.1 Set up React DnD library and drag-drop context
+- [x] 6. Implement drag-and-drop core functionality
+  - [x] 6.1 Set up React DnD library and drag-drop context
     - Configure React DnD backend and providers
     - Create drag item types and interfaces
     - Set up drag layer for custom drag previews
     - _Requirements: US-2.2, US-2.3_
 
-  - [ ] 6.2 Implement drag sources (recipe cards)
+  - [x] 6.2 Implement drag sources (recipe cards)
     - Make recipe cards draggable from sidebar
     - Add drag preview with recipe information
     - Handle drag start and end events
     - _Requirements: US-2.2, US-2.3_
 
-  - [ ] 6.3 Implement drop targets (meal slots)
+  - [x] 6.3 Implement drop targets (meal slots)
     - Make meal slots accept dropped recipes
     - Add visual feedback for valid drop zones
     - Handle drop events and meal assignment
@@ -102,20 +102,20 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 6: Drag Visual Feedback**
     - **Validates: Requirements US-2.3**
 
-- [ ] 7. Implement meal management operations
-  - [ ] 7.1 Add meal removal functionality
+- [x] 7. Implement meal management operations
+  - [x] 7.1 Add meal removal functionality
     - Implement delete action for individual meals
     - Add clear day functionality for bulk removal
     - Update meal plan state and trigger auto-save
     - _Requirements: US-3.1, US-3.5_
 
-  - [ ] 7.2 Implement meal copy and duplication features
+  - [x] 7.2 Implement meal copy and duplication features
     - Add copy meal to other slots functionality
     - Implement duplicate day and duplicate week operations
     - Ensure proper state management for duplicated meals
     - _Requirements: US-3.2, US-3.4_
 
-  - [ ] 7.3 Add meal swap functionality
+  - [x] 7.3 Add meal swap functionality
     - Enable dragging meals between existing slots
     - Implement swap logic for exchanging meal positions
     - Update drag-and-drop handlers for meal-to-meal operations
@@ -127,8 +127,8 @@ This implementation plan breaks down the drag-and-drop meal planning calendar in
     - **Property 10: Meal Swap Operations**
     - **Validates: Requirements US-3.1, US-3.2, US-3.3, US-3.4, US-3.5**
 
-- [ ] 8. Implement undo/redo functionality
-  - [ ] 8.1 Create undo/redo state management system
+- [x] 8. Implement undo/redo functionality
+  - [x] 8.1 Create undo/redo state management system
     - Implement history stack for meal plan changes
     - Add undo and redo action handlers
     - Integrate with existing meal management operations

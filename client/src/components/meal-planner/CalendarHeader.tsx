@@ -1,6 +1,7 @@
 import React from 'react';
 import { format, isThisWeek } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar, ShoppingCart } from 'lucide-react';
+import { UndoRedoControls } from './UndoRedoControls';
 
 interface CalendarHeaderProps {
   currentWeek: Date;
@@ -11,6 +12,13 @@ interface CalendarHeaderProps {
   isLoading?: boolean;
   isDirty?: boolean;
   lastSaved?: Date | null;
+  // Undo/Redo props
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  previousActionDescription?: string;
+  nextActionDescription?: string;
 }
 
 export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
@@ -22,6 +30,12 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   isLoading = false,
   isDirty = false,
   lastSaved,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
+  previousActionDescription,
+  nextActionDescription,
 }) => {
   const isCurrentWeek = isThisWeek(currentWeek, { weekStartsOn: 1 });
   
@@ -79,8 +93,36 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
           </div>
         </div>
 
+        {/* Center Section - Undo/Redo Controls */}
+        {onUndo && onRedo && (
+          <div className="hidden lg:block">
+            <UndoRedoControls
+              canUndo={canUndo}
+              canRedo={canRedo}
+              onUndo={onUndo}
+              onRedo={onRedo}
+              previousActionDescription={previousActionDescription}
+              nextActionDescription={nextActionDescription}
+            />
+          </div>
+        )}
+
         {/* Right Section - Actions and Status */}
         <div className="flex items-center space-x-2 md:space-x-4">
+          {/* Undo/Redo Controls - Mobile/Tablet */}
+          {onUndo && onRedo && (
+            <div className="lg:hidden">
+              <UndoRedoControls
+                canUndo={canUndo}
+                canRedo={canRedo}
+                onUndo={onUndo}
+                onRedo={onRedo}
+                previousActionDescription={previousActionDescription}
+                nextActionDescription={nextActionDescription}
+              />
+            </div>
+          )}
+
           {/* Save Status */}
           <div className="text-xs md:text-sm text-gray-600 hidden sm:block">
             {isLoading ? (

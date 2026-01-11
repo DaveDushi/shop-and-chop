@@ -1,8 +1,10 @@
 import React from 'react';
+import { useDrop } from 'react-dnd';
 import { MealSlot as MealSlotType, MealType } from '../../types/MealPlan.types';
 import { Recipe } from '../../types/Recipe.types';
 import { MealCard } from './MealCard';
 import { Plus } from 'lucide-react';
+import { DragItemTypes, DragItem, DropCollectedProps, DropResult } from '../../types/DragDrop.types';
 
 interface MealSlotProps {
   dayIndex: number;
@@ -10,24 +12,90 @@ interface MealSlotProps {
   meal?: MealSlotType;
   onMealAssign: (recipe: Recipe) => void;
   onMealRemove: () => void;
-  isDropTarget: boolean;
+  onMealSwap?: (sourceLocation: { dayIndex: number; mealType: MealType }, recipe: Recipe) => void;
+  onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
+  onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
+  onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
 }
 
 export const MealSlot: React.FC<MealSlotProps> = ({
-  dayIndex: _dayIndex,
+  dayIndex,
   mealType,
   meal,
-  onMealAssign: _onMealAssign,
+  onMealAssign,
   onMealRemove,
-  isDropTarget,
+  onMealSwap,
+  onSwapMeals,
+  onCopyMeal,
+  onDuplicateDay,
 }) => {
+  // Set up drop functionality
+  const [{ isOver, canDrop }, dropRef] = useDrop<
+    DragItem,
+    DropResult,
+    DropCollectedProps
+  >({
+    accept: [DragItemTypes.RECIPE, DragItemTypes.MEAL],
+    drop: (item, monitor) => {
+      if (!monitor.didDrop()) {
+        if (item.type === DragItemTypes.RECIPE) {
+          // Handle recipe drop from sidebar
+          onMealAssign(item.recipe);
+        } else if (item.type === DragItemTypes.MEAL) {
+          // Check if we're dropping onto an occupied slot for swapping
+          if (meal && onSwapMeals) {
+            // Perform a swap operation
+            onSwapMeals(
+              item.sourceLocation.dayIndex,
+              item.sourceLocation.mealType,
+              dayIndex,
+              mealType
+            );
+          } else if (onMealSwap) {
+            // Handle meal move between slots (original behavior)
+            onMealSwap(item.sourceLocation, item.recipe);
+          }
+        }
+        
+        return {
+          dayIndex,
+          mealType,
+          dropEffect: item.type === DragItemTypes.MEAL ? 'move' : 'copy',
+        };
+      }
+    },
+    canDrop: (item) => {
+      // Allow recipe drops from sidebar
+      if (item.type === DragItemTypes.RECIPE) {
+        return true;
+      }
+      
+      // Allow meal swaps only if it's a different slot
+      if (item.type === DragItemTypes.MEAL) {
+        return !(
+          item.sourceLocation.dayIndex === dayIndex &&
+          item.sourceLocation.mealType === mealType
+        );
+      }
+      
+      return false;
+    },
+    collect: (monitor) => ({
+      isOver: monitor.isOver(),
+      canDrop: monitor.canDrop(),
+    }),
+  });
+
+  const isDropTarget = isOver && canDrop;
   const handleMealCardClick = () => {
     // This will be handled by the parent component for recipe detail modal
     // For now, we'll just prevent the event from bubbling up
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleRemove = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     onMealRemove();
   };
 
@@ -46,6 +114,7 @@ export const MealSlot: React.FC<MealSlotProps> = ({
 
   return (
     <div
+      ref={dropRef}
       className={`
         flex-1 min-h-[180px] border-b border-gray-200 last:border-b-0 p-3
         transition-all duration-200 ease-in-out
@@ -66,8 +135,14 @@ export const MealSlot: React.FC<MealSlotProps> = ({
         <div className="h-full">
           <MealCard
             meal={meal}
+            dayIndex={dayIndex}
+            mealType={mealType}
             onRemove={handleRemove}
             onClick={handleMealCardClick}
+            isDraggable={true}
+            onCopyMeal={onCopyMeal}
+            onSwapMeals={onSwapMeals}
+            onDuplicateDay={onDuplicateDay}
           />
         </div>
       ) : (

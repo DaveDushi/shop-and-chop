@@ -1,67 +1,58 @@
 import React from 'react';
-import { MealSlot, MealType } from '../../types/MealPlan.types';
+import { MealSlot as MealSlotType, MealType } from '../../types/MealPlan.types';
 import { Recipe } from '../../types/Recipe.types';
-import { MealCard } from './MealCard';
+import { MealSlot } from './MealSlot';
 
 interface MealSlotComponentProps {
   dayIndex: number;
   mealType: MealType;
   mealLabel: string;
-  meal?: MealSlot;
+  meal?: MealSlotType;
   onMealAssign: (dayIndex: number, mealType: MealType, recipe: Recipe) => void;
   onMealRemove: (dayIndex: number, mealType: MealType) => void;
   onMealSlotClick: (dayIndex: number, mealType: MealType) => void;
-  isDropTarget?: boolean;
+  onMealSwap?: (sourceLocation: { dayIndex: number; mealType: MealType }, targetDayIndex: number, targetMealType: MealType, recipe: Recipe) => void;
+  onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
+  onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
+  onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
 }
 
 export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
   dayIndex,
   mealType,
-  mealLabel,
   meal,
+  onMealAssign,
   onMealRemove,
-  onMealSlotClick,
-  isDropTarget = false,
+  onMealSwap,
+  onSwapMeals,
+  onCopyMeal,
+  onDuplicateDay,
 }) => {
-  const handleClick = () => {
-    onMealSlotClick(dayIndex, mealType);
+  const handleMealAssign = (recipe: Recipe) => {
+    onMealAssign(dayIndex, mealType, recipe);
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleMealRemove = () => {
     onMealRemove(dayIndex, mealType);
   };
 
-  return (
-    <div
-      className={`
-        flex-1 min-h-[140px] md:min-h-[180px] border-b border-gray-200 last:border-b-0 p-2 md:p-3
-        ${isDropTarget ? 'bg-blue-50 border-blue-300' : ''}
-        ${!meal ? 'hover:bg-gray-50 cursor-pointer active:bg-gray-100' : ''}
-        transition-colors duration-200
-      `}
-      onClick={handleClick}
-    >
-      {/* Meal Type Label */}
-      <div className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-        {mealLabel}
-      </div>
+  const handleMealSwap = (sourceLocation: { dayIndex: number; mealType: MealType }, recipe: Recipe) => {
+    if (onMealSwap) {
+      onMealSwap(sourceLocation, dayIndex, mealType, recipe);
+    }
+  };
 
-      {/* Meal Content */}
-      {meal ? (
-        <MealCard
-          meal={meal}
-          onRemove={handleRemove}
-          onClick={handleClick}
-        />
-      ) : (
-        <div className="flex-1 flex items-center justify-center min-h-[100px] md:min-h-[120px] border-2 border-dashed border-gray-300 rounded-lg hover:border-gray-400 transition-colors duration-200">
-          <div className="text-center text-gray-400">
-            <div className="text-xl md:text-2xl mb-1 md:mb-2">+</div>
-            <div className="text-xs md:text-sm">Add meal</div>
-          </div>
-        </div>
-      )}
-    </div>
+  return (
+    <MealSlot
+      dayIndex={dayIndex}
+      mealType={mealType}
+      meal={meal}
+      onMealAssign={handleMealAssign}
+      onMealRemove={handleMealRemove}
+      onMealSwap={handleMealSwap}
+      onSwapMeals={onSwapMeals}
+      onCopyMeal={onCopyMeal}
+      onDuplicateDay={onDuplicateDay}
+    />
   );
 };

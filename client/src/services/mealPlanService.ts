@@ -64,51 +64,86 @@ export const mealPlanService: MealPlanService = {
   },
 
   async updateMealPlan(mealPlan: MealPlan): Promise<MealPlan> {
+    // Convert frontend meals object structure to backend meals array format
+    const mealsArray: any[] = [];
+    
+    Object.entries(mealPlan.meals).forEach(([dayKey, dayMeals]) => {
+      // Map day names to day numbers (0 = Sunday, 1 = Monday, etc.)
+      const dayMapping: { [key: string]: number } = {
+        sunday: 0,
+        monday: 1,
+        tuesday: 2,
+        wednesday: 3,
+        thursday: 4,
+        friday: 5,
+        saturday: 6,
+      };
+      
+      const dayOfWeek = dayMapping[dayKey];
+      
+      Object.entries(dayMeals).forEach(([mealType, meal]) => {
+        if (meal) {
+          mealsArray.push({
+            recipeId: meal.recipeId,
+            dayOfWeek,
+            mealType,
+            servings: meal.servings,
+          });
+        }
+      });
+    });
+
     // Convert Date objects to strings for API
     const mealPlanForAPI = {
-      ...mealPlan,
-      weekStartDate: mealPlan.weekStartDate.toISOString(),
-      createdAt: mealPlan.createdAt.toISOString(),
-      updatedAt: mealPlan.updatedAt.toISOString(),
-      meals: Object.fromEntries(
-        Object.entries(mealPlan.meals).map(([day, dayMeals]) => [
-          day,
-          Object.fromEntries(
-            Object.entries(dayMeals).map(([mealType, meal]) => [
-              mealType,
-              meal ? {
-                ...meal,
-                scheduledFor: meal.scheduledFor.toISOString(),
-              } : undefined,
-            ])
-          ),
-        ])
-      ),
+      weekStartDate: mealPlan.weekStartDate.toISOString(), // Send as full ISO string for validation
+      meals: mealsArray,
     };
 
     const response = await api.put<MealPlanDetailResponse>(`/meal-plans/${mealPlan.id}`, mealPlanForAPI);
     
-    // Convert string dates back to Date objects
-    const updatedMealPlan = response.data.mealPlan;
+    // Convert backend format to frontend format
+    const backendMealPlan = response.data.mealPlan;
+    
+    // Transform meals array to meals object structure
+    const mealsObject: { [dayOfWeek: string]: { breakfast?: any; lunch?: any; dinner?: any } } = {
+      monday: {},
+      tuesday: {},
+      wednesday: {},
+      thursday: {},
+      friday: {},
+      saturday: {},
+      sunday: {},
+    };
+
+    // Map backend meals to frontend structure
+    if (backendMealPlan.meals && Array.isArray(backendMealPlan.meals)) {
+      (backendMealPlan.meals as any[]).forEach((meal: any) => {
+        const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const dayName = dayNames[meal.dayOfWeek];
+        
+        if (!mealsObject[dayName]) {
+          mealsObject[dayName] = {};
+        }
+        
+        (mealsObject[dayName] as any)[meal.mealType] = {
+          id: meal.id,
+          recipeId: meal.recipeId,
+          recipe: meal.recipe,
+          servings: meal.servings,
+          scheduledFor: new Date(meal.createdAt), // Use a reasonable date
+          mealType: meal.mealType,
+        };
+      });
+    }
+    
+    // Convert string dates back to Date objects and transform structure
     return {
-      ...updatedMealPlan,
-      weekStartDate: new Date(updatedMealPlan.weekStartDate),
-      createdAt: new Date(updatedMealPlan.createdAt),
-      updatedAt: new Date(updatedMealPlan.updatedAt),
-      meals: Object.fromEntries(
-        Object.entries(updatedMealPlan.meals).map(([day, dayMeals]) => [
-          day,
-          Object.fromEntries(
-            Object.entries(dayMeals).map(([mealType, meal]) => [
-              mealType,
-              meal ? {
-                ...meal,
-                scheduledFor: new Date(meal.scheduledFor),
-              } : undefined,
-            ])
-          ),
-        ])
-      ),
+      id: backendMealPlan.id,
+      userId: backendMealPlan.userId,
+      weekStartDate: new Date(backendMealPlan.weekStartDate),
+      meals: mealsObject,
+      createdAt: new Date(backendMealPlan.createdAt),
+      updatedAt: new Date(backendMealPlan.updatedAt),
     };
   },
 

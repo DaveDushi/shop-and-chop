@@ -1,19 +1,57 @@
 import React from 'react';
-import { MealSlot } from '../../types/MealPlan.types';
+import { useDrag } from 'react-dnd';
+import { MealSlot, MealType } from '../../types/MealPlan.types';
 import { X, Clock, Users, ChefHat, Star } from 'lucide-react';
+import { DragItemTypes, MealDragItem, DragCollectedProps } from '../../types/DragDrop.types';
+import { MealCardContextMenu } from './MealCardContextMenu';
 
 interface MealCardProps {
   meal: MealSlot;
-  onRemove: (e: React.MouseEvent) => void;
+  dayIndex?: number;
+  mealType?: MealType;
+  onRemove: (e?: React.MouseEvent) => void;
   onClick: () => void;
+  isDraggable?: boolean;
+  onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
+  onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
+  onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
 }
 
 export const MealCard: React.FC<MealCardProps> = ({
   meal,
+  dayIndex,
+  mealType,
   onRemove,
   onClick,
+  isDraggable = false,
+  onCopyMeal,
+  onSwapMeals,
+  onDuplicateDay,
 }) => {
   const { recipe, servings } = meal;
+
+  // Set up drag functionality for meal-to-meal operations
+  const [{ isDragging, canDrag }, dragRef] = useDrag<
+    MealDragItem,
+    void,
+    DragCollectedProps
+  >({
+    type: DragItemTypes.MEAL,
+    item: () => ({
+      type: DragItemTypes.MEAL,
+      recipe,
+      sourceType: 'MEAL_SLOT',
+      sourceLocation: {
+        dayIndex: dayIndex!,
+        mealType: mealType!,
+      },
+    }),
+    canDrag: isDraggable && dayIndex !== undefined && mealType !== undefined,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+      canDrag: monitor.canDrag(),
+    }),
+  });
 
   const handleClick = (e: React.MouseEvent) => {
     // Prevent click when clicking remove button
@@ -23,8 +61,10 @@ export const MealCard: React.FC<MealCardProps> = ({
     onClick();
   };
 
-  const handleRemove = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleRemove = (e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
     onRemove(e);
   };
 
@@ -36,7 +76,10 @@ export const MealCard: React.FC<MealCardProps> = ({
 
   return (
     <div
-      className="bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group relative overflow-hidden"
+      ref={isDraggable && canDrag ? dragRef : undefined}
+      className={`bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer group relative overflow-hidden ${
+        isDragging ? 'opacity-50' : ''
+      } ${isDraggable && canDrag ? 'cursor-grab active:cursor-grabbing' : ''}`}
       onClick={handleClick}
       role="button"
       tabIndex={0}
@@ -47,16 +90,38 @@ export const MealCard: React.FC<MealCardProps> = ({
         }
       }}
       aria-label={`View recipe details for ${recipe.name}`}
+      style={{
+        opacity: isDragging ? 0.5 : 1,
+      }}
     >
-      {/* Remove Button */}
-      <button
-        onClick={handleRemove}
-        className="absolute top-2 right-2 p-1.5 rounded-full bg-white shadow-sm border border-gray-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:border-red-200 hover:scale-105 z-10"
-        title="Remove meal"
-        aria-label={`Remove ${recipe.name} from meal plan`}
-      >
-        <X className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />
-      </button>
+      {/* Action Buttons */}
+      <div className="absolute top-2 right-2 flex items-center space-x-1">
+        {/* Context Menu - Show when copy/duplicate functions are available */}
+        {dayIndex !== undefined && mealType !== undefined && (
+          <div className="opacity-100 transition-all duration-200">
+            <MealCardContextMenu
+              dayIndex={dayIndex}
+              mealType={mealType}
+              onCopyMeal={onCopyMeal || (() => {})}
+              onSwapMeals={onSwapMeals}
+              onRemoveMeal={(e?: React.MouseEvent) => onRemove(e)}
+              onDuplicateDay={onDuplicateDay || (() => {})}
+            />
+          </div>
+        )}
+        
+        {/* Remove Button - Show when no context menu or as fallback */}
+        {!(dayIndex !== undefined && mealType !== undefined) && (
+          <button
+            onClick={handleRemove}
+            className="p-1.5 rounded-full bg-white shadow-sm border border-gray-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:border-red-200 hover:scale-105 z-10"
+            title="Remove meal"
+            aria-label={`Remove ${recipe.name} from meal plan`}
+          >
+            <X className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />
+          </button>
+        )}
+      </div>
 
       <div className="flex md:flex-col">
         {/* Recipe Image */}

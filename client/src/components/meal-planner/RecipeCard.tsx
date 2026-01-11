@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
+import { useDrag } from 'react-dnd';
 import { Recipe } from '../../types/Recipe.types';
+import { DragItemTypes, RecipeDragItem, DragCollectedProps } from '../../types/DragDrop.types';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -18,6 +20,25 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 }) => {
   const [imageError, setImageError] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+
+  // Set up drag functionality
+  const [{ isDragging, canDrag }, dragRef] = useDrag<
+    RecipeDragItem,
+    void,
+    DragCollectedProps
+  >({
+    type: DragItemTypes.RECIPE,
+    item: () => ({
+      type: DragItemTypes.RECIPE,
+      recipe,
+      sourceType: 'SIDEBAR',
+    }),
+    canDrag: isDraggable,
+    collect: (monitor) => ({
+      isDragging: monitor.isDragging(),
+      canDrag: monitor.canDrag(),
+    }),
+  });
 
   // Calculate total time
   const totalTime = recipe.prepTime + recipe.cookTime;
@@ -58,17 +79,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
   return (
     <div
+      ref={isDraggable ? dragRef : undefined}
       className={`group relative bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer ${
-        isDraggable ? 'cursor-grab active:cursor-grabbing' : ''
-      } ${className}`}
+        isDraggable && canDrag ? 'cursor-grab active:cursor-grabbing' : ''
+      } ${isDragging ? 'opacity-50' : ''} ${className}`}
       onClick={handleCardClick}
-      draggable={isDraggable}
-      onDragStart={(e) => {
-        if (isDraggable) {
-          // Set drag data for drag-and-drop operations
-          e.dataTransfer.setData('application/json', JSON.stringify(recipe));
-          e.dataTransfer.effectAllowed = 'copy';
-        }
+      style={{
+        opacity: isDragging ? 0.5 : 1,
       }}
     >
       {/* Recipe Image */}
@@ -171,8 +188,10 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       </div>
 
       {/* Drag Indicator */}
-      {isDraggable && (
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-20 transition-opacity duration-200 pointer-events-none">
+      {isDraggable && canDrag && (
+        <div className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200 pointer-events-none ${
+          isDragging ? 'opacity-0' : 'opacity-0 group-hover:opacity-20'
+        }`}>
           <svg className="w-8 h-8 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
           </svg>
