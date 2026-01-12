@@ -18,7 +18,7 @@ export interface NutritionInfo {
 export interface Recipe {
   id: string;
   name: string;
-  description: string;
+  description?: string;
   imageUrl?: string;
   prepTime: number;
   cookTime: number;
@@ -38,6 +38,10 @@ export interface Recipe {
   };
   createdAt?: string;
   updatedAt?: string;
+  // Recipe browser specific fields
+  userId?: string; // null for curated recipes
+  isFavorited?: boolean; // computed field
+  favoriteCount?: number; // computed field
 }
 
 export interface RecipeFilters {
@@ -46,6 +50,8 @@ export interface RecipeFilters {
   difficulty?: string;
   dietaryTags?: string[];
   maxCookTime?: number;
+  showFavoritesOnly?: boolean;
+  showUserRecipesOnly?: boolean;
 }
 
 export interface RecipesResponse {
@@ -56,4 +62,53 @@ export interface RecipesResponse {
     total: number;
     pages: number;
   };
+}
+
+// Recipe Browser specific interfaces
+export interface RecipeBrowserState {
+  // Data
+  recipes: Recipe[];
+  totalCount: number;
+  
+  // UI State
+  searchQuery: string;
+  filters: RecipeFilters;
+  viewMode: 'grid' | 'list';
+  currentPage: number;
+  
+  // Loading States
+  isLoading: boolean;
+  isSearching: boolean;
+  isCreating: boolean;
+  
+  // Modal States
+  showCreateModal: boolean;
+  showEditModal: boolean;
+  editingRecipe: Recipe | null;
+  
+  // Error States
+  error: string | null;
+  validationErrors: Record<string, string>;
+}
+
+export interface RecipeFormData {
+  title: string;
+  description?: string;
+  cuisine: string;
+  cookTime: number;
+  prepTime: number;
+  servings: number;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  dietaryTags: string[];
+  ingredients: IngredientInput[];
+  instructions: string[];
+  image?: File;
+}
+
+export interface IngredientInput {
+  id?: string;
+  name: string;
+  quantity: string;
+  unit: string;
+  category?: string;
 }

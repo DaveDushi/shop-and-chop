@@ -3,13 +3,15 @@ import { prisma } from '../config/database';
 import { AuthenticatedRequest } from '../middleware/auth';
 import { asyncHandler, createError } from '../middleware/errorHandler';
 
-export const getRecipes = asyncHandler(async (req: Request, res: Response) => {
+export const getRecipes = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
   const { 
     search, 
     cuisine, 
     difficulty, 
     dietaryTags, 
     maxCookTime,
+    showFavoritesOnly,
+    showUserRecipesOnly,
     page = '1',
     limit = '20'
   } = req.query;
@@ -45,16 +47,41 @@ export const getRecipes = asyncHandler(async (req: Request, res: Response) => {
     where.cookTime = { lte: parseInt(maxCookTime as string, 10) };
   }
 
+  // Handle user-specific filters (requires authentication)
+  const userId = (req as any).user?.userId; // Optional user from token if provided
+
+  if (showUserRecipesOnly === 'true' && userId) {
+    where.userId = userId;
+  }
+
+  // For favorites filter, we need to modify the query structure
+  let includeClause: any = {
+    ingredients: true,
+    _count: {
+      select: { favoritedBy: true }
+    }
+  };
+
+  // If user is authenticated, include favorite status
+  if (userId) {
+    includeClause.favoritedBy = {
+      where: { id: userId },
+      select: { id: true }
+    };
+  }
+
+  // If showing favorites only, modify the where clause
+  if (showFavoritesOnly === 'true' && userId) {
+    where.favoritedBy = {
+      some: { id: userId }
+    };
+  }
+
   // Get recipes with pagination
   const [recipes, total] = await Promise.all([
     prisma.recipe.findMany({
       where,
-      include: {
-        ingredients: true,
-        _count: {
-          select: { favoritedBy: true }
-        }
-      },
+      include: includeClause,
       orderBy: { createdAt: 'desc' },
       skip,
       take: limitNum
@@ -62,8 +89,15 @@ export const getRecipes = asyncHandler(async (req: Request, res: Response) => {
     prisma.recipe.count({ where })
   ]);
 
+  // Transform recipes to include favorite status
+  const recipesWithFavoriteStatus = recipes.map(recipe => ({
+    ...recipe,
+    isFavorited: userId ? (recipe as any).favoritedBy?.length > 0 : false,
+    favoriteCount: recipe._count.favoritedBy
+  }));
+
   res.json({
-    recipes,
+    recipes: recipesWithFavoriteStatus,
     pagination: {
       page: pageNum,
       limit: limitNum,

@@ -4,12 +4,12 @@ import {
   getRecipeById, 
   toggleFavoriteRecipe 
 } from '../controllers/recipeController';
-import { authenticateToken } from '../middleware/auth';
+import { authenticateToken, optionalAuthenticateToken } from '../middleware/auth';
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getRecipes);
+// Public routes with optional authentication for user-specific features
+router.get('/', optionalAuthenticateToken, getRecipes);
 router.get('/:id', getRecipeById);
 
 // Protected routes
