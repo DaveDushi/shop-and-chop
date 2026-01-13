@@ -28,3 +28,11 @@ Shop&Chop is a web application that eliminates the tedious process of meal plann
 - Had Kiro plan -> design -> task 
 - Went through all tasks for the feature it built.
 - Gave screenshots and error messages when something wasnt working.
+
+### Day 4 (Jan 12) - Core Architecture [5h]
+- Ran @prime and the @plan-feature to have the agent choose a feature to start planning
+- The agent decided to build out the Recipes view
+- Ran Plan -> Design -> Task
+- Started running tasks to get the recipe search working
+
+
