@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRecipeBrowser } from '../../hooks/useRecipeBrowser';
+import { useFavorites } from '../../hooks/useFavorites';
+import { useAuth } from '../../hooks/useAuth';
 import { RecipeGrid } from './RecipeGrid';
 import { RecipeSearchBar } from './RecipeSearchBar';
 import { RecipeFilters } from './RecipeFilters';
+import { ViewToggle } from './ViewToggle';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 
 export interface RecipeBrowserProps {
@@ -10,6 +13,7 @@ export interface RecipeBrowserProps {
 }
 
 export const RecipeBrowser: React.FC<RecipeBrowserProps> = () => {
+  const { isAuthenticated } = useAuth();
   const {
     recipes,
     totalCount,
@@ -21,10 +25,24 @@ export const RecipeBrowser: React.FC<RecipeBrowserProps> = () => {
     error,
     setSearchQuery,
     setFilters,
+    setViewMode,
     clearFilters,
     refetch,
     retry,
   } = useRecipeBrowser();
+
+  // Initialize favorites hook (will sync with recipe data)
+  const { toggleFavorite, isFavorited, isLoading: isFavoriteLoading, syncWithRecipes } = useFavorites();
+
+  // Sync favorites with recipe data when recipes change
+  useEffect(() => {
+    if (isAuthenticated && recipes.length > 0) {
+      const favoriteRecipeIds = recipes
+        .filter(recipe => recipe.isFavorited)
+        .map(recipe => recipe.id);
+      syncWithRecipes(favoriteRecipeIds);
+    }
+  }, [recipes, isAuthenticated, syncWithRecipes]);
 
   // Handle recipe selection (for future modal implementation)
   const handleRecipeSelect = (recipe: any) => {
@@ -32,10 +50,20 @@ export const RecipeBrowser: React.FC<RecipeBrowserProps> = () => {
     console.log('Recipe selected:', recipe);
   };
 
-  // Handle favorite toggle (for future implementation)
-  const handleFavoriteToggle = (recipeId: string) => {
-    // TODO: Implement favorites functionality
-    console.log('Toggle favorite:', recipeId);
+  // Handle favorite toggle with authentication check
+  const handleFavoriteToggle = async (recipeId: string) => {
+    if (!isAuthenticated) {
+      // TODO: Show login modal or redirect to login
+      console.log('User must be logged in to favorite recipes');
+      return;
+    }
+
+    try {
+      await toggleFavorite(recipeId);
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+      // TODO: Show user-friendly error message (toast notification)
+    }
   };
 
   // Handle add to meal plan (for future implementation)
@@ -127,13 +155,24 @@ export const RecipeBrowser: React.FC<RecipeBrowserProps> = () => {
         />
       </div>
 
-      {/* Filters Panel */}
-      <RecipeFilters
-        filters={filters}
-        onChange={setFilters}
-        onClear={clearFilters}
-        isCollapsed={false}
-      />
+      {/* Filters Panel and View Toggle */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div className="flex-1">
+          <RecipeFilters
+            filters={filters}
+            onChange={setFilters}
+            onClear={clearFilters}
+            isCollapsed={false}
+          />
+        </div>
+        
+        <div className="flex-shrink-0">
+          <ViewToggle
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
+        </div>
+      </div>
 
       {/* Main Content Area */}
       <div className="bg-white rounded-lg shadow">
@@ -150,6 +189,9 @@ export const RecipeBrowser: React.FC<RecipeBrowserProps> = () => {
             onRecipeSelect={handleRecipeSelect}
             onFavoriteToggle={handleFavoriteToggle}
             onAddToMealPlan={handleAddToMealPlan}
+            isFavorited={isFavorited}
+            isFavoriteLoading={isFavoriteLoading}
+            isAuthenticated={isAuthenticated}
           />
         )}
       </div>

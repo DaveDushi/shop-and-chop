@@ -48,32 +48,32 @@ export const getRecipes = asyncHandler(async (req: AuthenticatedRequest, res: Re
   }
 
   // Handle user-specific filters (requires authentication)
-  const userId = (req as any).user?.userId; // Optional user from token if provided
+  const userId = req.user?.userId;
 
   if (showUserRecipesOnly === 'true' && userId) {
     where.userId = userId;
-  }
-
-  // For favorites filter, we need to modify the query structure
-  let includeClause: any = {
-    ingredients: true,
-    _count: {
-      select: { favoritedBy: true }
-    }
-  };
-
-  // If user is authenticated, include favorite status
-  if (userId) {
-    includeClause.favoritedBy = {
-      where: { id: userId },
-      select: { id: true }
-    };
   }
 
   // If showing favorites only, modify the where clause
   if (showFavoritesOnly === 'true' && userId) {
     where.favoritedBy = {
       some: { id: userId }
+    };
+  }
+
+  // Build include clause
+  const includeClause: any = {
+    ingredients: true,
+    _count: {
+      select: { favoritedBy: true }
+    }
+  };
+
+  // If user is authenticated, include their favorite status for each recipe
+  if (userId) {
+    includeClause.favoritedBy = {
+      where: { id: userId },
+      select: { id: true }
     };
   }
 
@@ -90,11 +90,17 @@ export const getRecipes = asyncHandler(async (req: AuthenticatedRequest, res: Re
   ]);
 
   // Transform recipes to include favorite status
-  const recipesWithFavoriteStatus = recipes.map(recipe => ({
-    ...recipe,
-    isFavorited: userId ? (recipe as any).favoritedBy?.length > 0 : false,
-    favoriteCount: recipe._count.favoritedBy
-  }));
+  const recipesWithFavoriteStatus = recipes.map((recipe: any) => {
+    // Check if the current user has favorited this recipe
+    // The favoritedBy array will contain the user if they favorited it, empty array if not
+    const isFavorited = userId && recipe.favoritedBy && recipe.favoritedBy.length > 0;
+    
+    return {
+      ...recipe,
+      isFavorited: Boolean(isFavorited),
+      favoriteCount: recipe['_count']?.favoritedBy || 0
+    };
+  });
 
   res.json({
     recipes: recipesWithFavoriteStatus,
@@ -109,6 +115,10 @@ export const getRecipes = asyncHandler(async (req: AuthenticatedRequest, res: Re
 
 export const getRecipeById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
+
+  if (!id) {
+    throw createError('Recipe ID is required', 400);
+  }
 
   const recipe = await prisma.recipe.findUnique({
     where: { id },
@@ -134,6 +144,14 @@ export const toggleFavoriteRecipe = asyncHandler(async (req: AuthenticatedReques
 
   const { id: recipeId } = req.params;
   const userId = req.user.userId;
+
+  if (!recipeId) {
+    throw createError('Recipe ID is required', 400);
+  }
+
+  if (!userId) {
+    throw createError('User ID is required', 400);
+  }
 
   // Check if recipe exists
   const recipe = await prisma.recipe.findUnique({

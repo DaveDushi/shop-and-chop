@@ -10,6 +10,9 @@ export interface RecipeGridProps {
   onRecipeSelect: (recipe: Recipe) => void;
   onFavoriteToggle: (recipeId: string) => void;
   onAddToMealPlan: (recipe: Recipe) => void;
+  isFavorited?: (recipeId: string) => boolean;
+  isFavoriteLoading?: (recipeId: string) => boolean;
+  isAuthenticated?: boolean;
 }
 
 export const RecipeGrid: React.FC<RecipeGridProps> = ({
@@ -19,6 +22,9 @@ export const RecipeGrid: React.FC<RecipeGridProps> = ({
   onRecipeSelect,
   onFavoriteToggle,
   onAddToMealPlan,
+  isFavorited,
+  isFavoriteLoading,
+  isAuthenticated = false,
 }) => {
   // Loading state with skeleton cards
   if (isLoading) {
@@ -69,21 +75,31 @@ export const RecipeGrid: React.FC<RecipeGridProps> = ({
   // Recipe grid/list display
   return (
     <div className="p-6">
-      <div className={`grid gap-6 ${
+      <div className={`grid gap-6 transition-all duration-300 ease-in-out ${
         viewMode === 'grid' 
           ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4' 
           : 'grid-cols-1'
       }`}>
-        {recipes.map((recipe) => (
-          <RecipeCard
-            key={recipe.id}
-            recipe={recipe}
-            viewMode={viewMode}
-            onSelect={() => onRecipeSelect(recipe)}
-            onFavoriteToggle={() => onFavoriteToggle(recipe.id)}
-            onAddToMealPlan={() => onAddToMealPlan(recipe)}
-          />
-        ))}
+        {recipes.map((recipe) => {
+          // Merge server-side favorite status with client-side state
+          const recipeWithFavoriteState = {
+            ...recipe,
+            isFavorited: isFavorited ? isFavorited(recipe.id) : recipe.isFavorited,
+          };
+          
+          return (
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipeWithFavoriteState}
+              viewMode={viewMode}
+              onSelect={() => onRecipeSelect(recipe)}
+              onFavoriteToggle={() => onFavoriteToggle(recipe.id)}
+              onAddToMealPlan={() => onAddToMealPlan(recipe)}
+              isFavoriteLoading={isFavoriteLoading ? isFavoriteLoading(recipe.id) : false}
+              isAuthenticated={isAuthenticated}
+            />
+          );
+        })}
       </div>
     </div>
   );

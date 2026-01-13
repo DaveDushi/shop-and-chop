@@ -7,6 +7,8 @@ export interface RecipeCardProps {
   onSelect: () => void;
   onFavoriteToggle: () => void;
   onAddToMealPlan: () => void;
+  isFavoriteLoading?: boolean;
+  isAuthenticated?: boolean;
 }
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({
@@ -15,6 +17,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   onSelect,
   onFavoriteToggle,
   onAddToMealPlan,
+  isFavoriteLoading = false,
+  isAuthenticated = false,
 }) => {
   const totalTime = recipe.prepTime + recipe.cookTime;
   const displayName = recipe.name || recipe.title || 'Untitled Recipe';
@@ -43,7 +47,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
         <div className="flex items-start space-x-4">
           {/* Recipe Image */}
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 relative">
             <div className="w-24 h-18 bg-gray-200 rounded-md overflow-hidden">
               {recipe.imageUrl ? (
                 <img
@@ -63,6 +67,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                 </div>
               )}
             </div>
+            
+            {/* Favorite indicator overlay */}
+            {recipe.isFavorited && (
+              <div className="absolute -top-1 -right-1 bg-white bg-opacity-90 rounded-full p-1 shadow-sm">
+                <svg className="w-3 h-3 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
           </div>
 
           {/* Recipe Content */}
@@ -130,16 +143,33 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               <div className="flex items-center space-x-2 ml-4">
                 <button
                   onClick={onFavoriteToggle}
-                  className={`p-2 rounded-full transition-colors ${
-                    recipe.isFavorited
-                      ? 'text-red-500 hover:text-red-600'
-                      : 'text-gray-400 hover:text-red-500'
+                  disabled={isFavoriteLoading || !isAuthenticated}
+                  className={`p-2 rounded-full transition-all duration-200 ${
+                    isFavoriteLoading || !isAuthenticated
+                      ? 'text-gray-300 cursor-not-allowed'
+                      : recipe.isFavorited
+                      ? 'text-red-500 hover:text-red-600 hover:scale-110'
+                      : 'text-gray-400 hover:text-red-500 hover:scale-110'
                   }`}
-                  title={recipe.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                  title={
+                    !isAuthenticated
+                      ? 'Login to favorite recipes'
+                      : isFavoriteLoading
+                      ? 'Updating...'
+                      : recipe.isFavorited
+                      ? 'Remove from favorites'
+                      : 'Add to favorites'
+                  }
                 >
-                  <svg className="w-5 h-5" fill={recipe.isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                  </svg>
+                  {isFavoriteLoading ? (
+                    <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill={recipe.isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                  )}
                 </button>
                 <button
                   onClick={onAddToMealPlan}
@@ -172,7 +202,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
       {/* Recipe Image */}
-      <div className="aspect-w-16 aspect-h-12 bg-gray-200">
+      <div className="aspect-w-16 aspect-h-12 bg-gray-200 relative">
         {recipe.imageUrl ? (
           <img
             src={recipe.imageUrl}
@@ -191,6 +221,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           >
             <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+        
+        {/* Favorite indicator overlay */}
+        {recipe.isFavorited && (
+          <div className="absolute top-2 right-2 bg-white bg-opacity-90 rounded-full p-1.5 shadow-sm">
+            <svg className="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
             </svg>
           </div>
         )}
@@ -258,16 +297,33 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           <div className="flex items-center space-x-2">
             <button
               onClick={onFavoriteToggle}
-              className={`p-2 rounded-full transition-colors ${
-                recipe.isFavorited
-                  ? 'text-red-500 hover:text-red-600'
-                  : 'text-gray-400 hover:text-red-500'
+              disabled={isFavoriteLoading || !isAuthenticated}
+              className={`p-2 rounded-full transition-all duration-200 ${
+                isFavoriteLoading || !isAuthenticated
+                  ? 'text-gray-300 cursor-not-allowed'
+                  : recipe.isFavorited
+                  ? 'text-red-500 hover:text-red-600 hover:scale-110'
+                  : 'text-gray-400 hover:text-red-500 hover:scale-110'
               }`}
-              title={recipe.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+              title={
+                !isAuthenticated
+                  ? 'Login to favorite recipes'
+                  : isFavoriteLoading
+                  ? 'Updating...'
+                  : recipe.isFavorited
+                  ? 'Remove from favorites'
+                  : 'Add to favorites'
+              }
             >
-              <svg className="w-5 h-5" fill={recipe.isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-              </svg>
+              {isFavoriteLoading ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill={recipe.isFavorited ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+              )}
             </button>
             <button
               onClick={onAddToMealPlan}
