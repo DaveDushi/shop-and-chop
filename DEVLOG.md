@@ -29,10 +29,14 @@ Shop&Chop is a web application that eliminates the tedious process of meal plann
 - Went through all tasks for the feature it built.
 - Gave screenshots and error messages when something wasnt working.
 
-### Day 4 (Jan 12) - Core Architecture [5h]
+### Day 4 (Jan 12) - Core Architecture [1h]
 - Ran @prime and the @plan-feature to have the agent choose a feature to start planning
 - The agent decided to build out the Recipes view
 - Ran Plan -> Design -> Task
 - Started running tasks to get the recipe search working
+
+### Day 5 (Jan 13) - Core Architecture [1h]
+- Ran tasks 3 - 6
+- So far the recipe page is looking good all tests passs
 
 
