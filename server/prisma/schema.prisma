@@ -20,6 +20,7 @@ model User {
   favoriteCuisines    String[]
   mealPlans           MealPlan[]
   favoriteRecipes     Recipe[]   @relation("UserFavorites")
+  ownedRecipes        Recipe[]   @relation("RecipeOwner")
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
 
@@ -38,6 +39,8 @@ model Recipe {
   ingredients   Ingredient[]
   instructions  String[]
   imageUrl      String?
+  userId        String?        // null for curated recipes, set for user-created recipes
+  owner         User?          @relation("RecipeOwner", fields: [userId], references: [id], onDelete: SetNull)
   favoritedBy   User[]         @relation("UserFavorites")
   mealPlanItems MealPlanItem[]
   createdAt     DateTime       @default(now())

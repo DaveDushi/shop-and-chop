@@ -10,9 +10,12 @@ export interface RecipeGridProps {
   onRecipeSelect: (recipe: Recipe) => void;
   onFavoriteToggle: (recipeId: string) => void;
   onAddToMealPlan: (recipe: Recipe) => void;
+  onEdit?: (recipe: Recipe) => void;
+  onDelete?: (recipe: Recipe) => void;
   isFavorited?: (recipeId: string) => boolean;
   isFavoriteLoading?: (recipeId: string) => boolean;
   isAuthenticated?: boolean;
+  currentUserId?: string;
 }
 
 export const RecipeGrid: React.FC<RecipeGridProps> = ({
@@ -22,9 +25,12 @@ export const RecipeGrid: React.FC<RecipeGridProps> = ({
   onRecipeSelect,
   onFavoriteToggle,
   onAddToMealPlan,
+  onEdit,
+  onDelete,
   isFavorited,
   isFavoriteLoading,
   isAuthenticated = false,
+  currentUserId,
 }) => {
   // Loading state with skeleton cards
   if (isLoading) {
@@ -95,8 +101,11 @@ export const RecipeGrid: React.FC<RecipeGridProps> = ({
               onSelect={() => onRecipeSelect(recipe)}
               onFavoriteToggle={() => onFavoriteToggle(recipe.id)}
               onAddToMealPlan={() => onAddToMealPlan(recipe)}
+              onEdit={onEdit ? () => onEdit(recipe) : undefined}
+              onDelete={onDelete ? () => onDelete(recipe) : undefined}
               isFavoriteLoading={isFavoriteLoading ? isFavoriteLoading(recipe.id) : false}
               isAuthenticated={isAuthenticated}
+              currentUserId={currentUserId}
             />
           );
         })}

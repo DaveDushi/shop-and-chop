@@ -65,9 +65,85 @@ export const useFavoriteRecipes = () => {
 
 export const useCreateRecipe = () => {
   const queryClient = useQueryClient();
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
-  return useMutation({
-    mutationFn: (data: RecipeFormData) => recipeService.createRecipe(data),
+  const mutation = useMutation({
+    mutationFn: async (data: RecipeFormData) => {
+      // Reset validation errors
+      setValidationErrors({});
+      setUploadProgress(0);
+      
+      // Client-side validation
+      const errors: Record<string, string> = {};
+      
+      if (!data.title || data.title.trim().length === 0) {
+        errors.title = 'Recipe title is required';
+      }
+      
+      if (!data.cuisine || data.cuisine.trim().length === 0) {
+        errors.cuisine = 'Cuisine is required';
+      }
+      
+      if (!data.difficulty) {
+        errors.difficulty = 'Difficulty level is required';
+      }
+      
+      if (data.cookTime <= 0) {
+        errors.cookTime = 'Cook time must be greater than 0';
+      }
+      
+      if (data.servings <= 0) {
+        errors.servings = 'Servings must be greater than 0';
+      }
+      
+      if (!data.ingredients || data.ingredients.length === 0) {
+        errors.ingredients = 'At least one ingredient is required';
+      }
+      
+      if (!data.instructions || data.instructions.length === 0) {
+        errors.instructions = 'At least one instruction is required';
+      }
+      
+      // Validate image if provided
+      if (data.image) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(data.image.type)) {
+          errors.image = 'Image must be JPG, PNG, or WebP format';
+        }
+        
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (data.image.size > maxSize) {
+          errors.image = 'Image size must be less than 5MB';
+        }
+      }
+      
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        throw new Error('Validation failed');
+      }
+      
+      try {
+        // Simulate progress for image upload
+        if (data.image) {
+          setUploadProgress(30);
+        }
+        
+        const result = await recipeService.createRecipe(data);
+        
+        if (data.image) {
+          setUploadProgress(100);
+        }
+        
+        return result;
+      } catch (error: any) {
+        // Handle server-side validation errors
+        if (error.response?.data?.errors) {
+          setValidationErrors(error.response.data.errors);
+        }
+        throw error;
+      }
+    },
     onSuccess: (newRecipe) => {
       // Invalidate and refetch recipes
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
@@ -75,25 +151,203 @@ export const useCreateRecipe = () => {
       
       // Add the new recipe to the cache
       queryClient.setQueryData(['recipe', newRecipe.id], newRecipe);
+      
+      // Reset progress
+      setUploadProgress(0);
+      setValidationErrors({});
+    },
+    onError: (error: any) => {
+      // Reset progress on error
+      setUploadProgress(0);
+      
+      // Extract validation errors from server response
+      if (error.response?.data?.errors) {
+        setValidationErrors(error.response.data.errors);
+      }
     },
   });
+  
+  return {
+    ...mutation,
+    uploadProgress,
+    validationErrors,
+    clearValidationErrors: () => setValidationErrors({}),
+  };
 };
 
 export const useUpdateRecipe = () => {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<RecipeFormData> }) => 
-      recipeService.updateRecipe(id, data),
+  const mutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<RecipeFormData> }) => {
+      // Reset validation errors
+      setValidationErrors({});
+      setUploadProgress(0);
+      
+      // Get current recipe for ownership validation
+      const currentRecipe = queryClient.getQueryData<Recipe>(['recipe', id]);
+      
+      // Client-side ownership validation
+      if (currentRecipe && currentRecipe.userId && currentRecipe.userId !== user?.id) {
+        const error = new Error('You do not have permission to edit this recipe');
+        setValidationErrors({ ownership: 'You do not have permission to edit this recipe' });
+        throw error;
+      }
+      
+      // Client-side validation for provided fields
+      const errors: Record<string, string> = {};
+      
+      if (data.title !== undefined && data.title.trim().length === 0) {
+        errors.title = 'Recipe title cannot be empty';
+      }
+      
+      if (data.cuisine !== undefined && data.cuisine.trim().length === 0) {
+        errors.cuisine = 'Cuisine cannot be empty';
+      }
+      
+      if (data.cookTime !== undefined && data.cookTime <= 0) {
+        errors.cookTime = 'Cook time must be greater than 0';
+      }
+      
+      if (data.servings !== undefined && data.servings <= 0) {
+        errors.servings = 'Servings must be greater than 0';
+      }
+      
+      if (data.ingredients !== undefined && data.ingredients.length === 0) {
+        errors.ingredients = 'At least one ingredient is required';
+      }
+      
+      if (data.instructions !== undefined && data.instructions.length === 0) {
+        errors.instructions = 'At least one instruction is required';
+      }
+      
+      // Validate image if provided
+      if (data.image) {
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(data.image.type)) {
+          errors.image = 'Image must be JPG, PNG, or WebP format';
+        }
+        
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (data.image.size > maxSize) {
+          errors.image = 'Image size must be less than 5MB';
+        }
+      }
+      
+      if (Object.keys(errors).length > 0) {
+        setValidationErrors(errors);
+        throw new Error('Validation failed');
+      }
+      
+      try {
+        // Simulate progress for image upload
+        if (data.image) {
+          setUploadProgress(30);
+        }
+        
+        const result = await recipeService.updateRecipe(id, data);
+        
+        if (data.image) {
+          setUploadProgress(100);
+        }
+        
+        return result;
+      } catch (error: any) {
+        // Handle server-side validation errors
+        if (error.response?.data?.errors) {
+          setValidationErrors(error.response.data.errors);
+        }
+        throw error;
+      }
+    },
+    onMutate: async ({ id, data }) => {
+      // Cancel any outgoing refetches to avoid overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey: ['recipe', id] });
+      
+      // Snapshot the previous value for rollback
+      const previousRecipe = queryClient.getQueryData<Recipe>(['recipe', id]);
+      
+      // Optimistically update the recipe
+      if (previousRecipe) {
+        queryClient.setQueryData<Recipe>(['recipe', id], (old) => {
+          if (!old) return old;
+          
+          // Convert IngredientInput[] to Ingredient[] if ingredients are being updated
+          const updatedIngredients = data.ingredients 
+            ? data.ingredients.map(ing => ({
+                id: ing.id || `temp-${Date.now()}-${Math.random()}`,
+                name: ing.name,
+                quantity: ing.quantity,
+                unit: ing.unit,
+                category: ing.category || 'Other',
+              }))
+            : old.ingredients;
+          
+          return {
+            ...old,
+            title: data.title ?? old.title,
+            description: data.description ?? old.description,
+            cuisine: data.cuisine ?? old.cuisine,
+            cookTime: data.cookTime ?? old.cookTime,
+            prepTime: data.prepTime ?? old.prepTime,
+            servings: data.servings ?? old.servings,
+            difficulty: data.difficulty ?? old.difficulty,
+            dietaryTags: data.dietaryTags ?? old.dietaryTags,
+            ingredients: updatedIngredients,
+            instructions: data.instructions ?? old.instructions,
+            // Preserve fields that shouldn't be updated optimistically
+            id: old.id,
+            userId: old.userId,
+            createdAt: old.createdAt,
+            updatedAt: new Date().toISOString(),
+          };
+        });
+      }
+      
+      // Return context with previous value for rollback
+      return { previousRecipe };
+    },
     onSuccess: (updatedRecipe) => {
-      // Update the specific recipe in cache
+      // Update the specific recipe in cache with server response
       queryClient.setQueryData(['recipe', updatedRecipe.id], updatedRecipe);
       
       // Invalidate recipes lists to reflect changes
       queryClient.invalidateQueries({ queryKey: ['recipes'] });
       queryClient.invalidateQueries({ queryKey: ['recipes-paginated'] });
+      
+      // Reset progress and errors
+      setUploadProgress(0);
+      setValidationErrors({});
+    },
+    onError: (error: any, { id }, context) => {
+      // Rollback to previous value on error
+      if (context?.previousRecipe) {
+        queryClient.setQueryData(['recipe', id], context.previousRecipe);
+      }
+      
+      // Reset progress
+      setUploadProgress(0);
+      
+      // Extract validation errors from server response
+      if (error.response?.data?.errors) {
+        setValidationErrors(error.response.data.errors);
+      }
+    },
+    onSettled: (_, __, { id }) => {
+      // Always refetch after error or success to ensure cache is in sync
+      queryClient.invalidateQueries({ queryKey: ['recipe', id] });
     },
   });
+  
+  return {
+    ...mutation,
+    uploadProgress,
+    validationErrors,
+    clearValidationErrors: () => setValidationErrors({}),
+  };
 };
 
 export const useDeleteRecipe = () => {
