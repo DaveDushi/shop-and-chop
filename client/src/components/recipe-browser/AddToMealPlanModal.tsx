@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Recipe } from '../../types/Recipe.types';
 import { MealType } from '../../types/MealPlan.types';
 import { startOfWeek, addDays, format } from 'date-fns';
+import { Plus, Minus } from 'lucide-react';
+import { Modal } from '../common/Modal';
 
 export interface AddToMealPlanModalProps {
   isOpen: boolean;
@@ -66,184 +68,142 @@ export const AddToMealPlanModal: React.FC<AddToMealPlanModalProps> = ({
     }
   };
 
-  if (!isOpen || !recipe) return null;
+  if (!recipe) return null;
+
+  const footerContent = (
+    <div className="flex flex-col-reverse xs:flex-row gap-3 xs:justify-end">
+      <button
+        type="button"
+        onClick={handleClose}
+        disabled={isSubmitting}
+        className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-touch touch-manipulation"
+      >
+        Cancel
+      </button>
+      <button
+        type="submit"
+        disabled={isSubmitting}
+        onClick={handleSubmit}
+        className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 active:bg-primary-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-touch touch-manipulation flex items-center justify-center"
+      >
+        {isSubmitting ? (
+          <>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+            Adding...
+          </>
+        ) : (
+          'Add to Meal Plan'
+        )}
+      </button>
+    </div>
+  );
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-      <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
-        <div 
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" 
-          aria-hidden="true"
-          onClick={handleClose}
-        ></div>
-
-        {/* Center modal */}
-        <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-          <form onSubmit={handleSubmit}>
-            {/* Header */}
-            <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-green-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                    </svg>
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">
-                      Add to Meal Plan
-                    </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                      {recipe.name || recipe.title}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  disabled={isSubmitting}
-                  className="text-gray-400 hover:text-gray-500 focus:outline-none"
-                >
-                  <span className="sr-only">Close</span>
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Error message */}
-              {error && (
-                <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded relative">
-                  <span className="block sm:inline">{error}</span>
-                </div>
-              )}
-
-              {/* Form fields */}
-              <div className="space-y-4">
-                {/* Day selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Day
-                  </label>
-                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                    {days.map((day) => (
-                      <button
-                        key={day.index}
-                        type="button"
-                        onClick={() => setSelectedDay(day.index)}
-                        className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                          selectedDay === day.index
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        <div className="font-semibold">{day.name.slice(0, 3)}</div>
-                        <div className="text-xs opacity-75">{day.date}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Meal type selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Meal Type
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {mealTypes.map((mealType) => (
-                      <button
-                        key={mealType.value}
-                        type="button"
-                        onClick={() => setSelectedMealType(mealType.value)}
-                        className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                          selectedMealType === mealType.value
-                            ? 'bg-green-600 text-white'
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                        }`}
-                      >
-                        {mealType.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Servings input */}
-                <div>
-                  <label htmlFor="servings" className="block text-sm font-medium text-gray-700 mb-2">
-                    Servings
-                  </label>
-                  <div className="flex items-center space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => setServings(Math.max(1, servings - 1))}
-                      className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
-                      disabled={servings <= 1}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                      </svg>
-                    </button>
-                    <input
-                      type="number"
-                      id="servings"
-                      min="1"
-                      max="20"
-                      value={servings}
-                      onChange={(e) => setServings(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="block w-20 text-center rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 sm:text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setServings(Math.min(20, servings + 1))}
-                      className="p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
-                      disabled={servings >= 20}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Original recipe serves {recipe.servings}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title={`Add "${recipe.name || recipe.title}" to Meal Plan`}
+      size="md"
+      loading={false}
+      error={error}
+      onClearError={() => setError(null)}
+      closeOnBackdropClick={!isSubmitting}
+      closeOnEscape={!isSubmitting}
+      footerContent={footerContent}
+      headerClassName="bg-primary-50/50"
+    >
+      <div className="space-y-6">
+        {/* Day selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Select Day
+          </label>
+          <div className="grid grid-cols-2 xs:grid-cols-4 gap-2">
+            {days.map((day) => (
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSubmitting ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Adding...
-                  </>
-                ) : (
-                  'Add to Meal Plan'
-                )}
-              </button>
-              <button
+                key={day.index}
                 type="button"
-                onClick={handleClose}
-                disabled={isSubmitting}
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={() => setSelectedDay(day.index)}
+                className={`px-3 py-3 text-sm font-medium rounded-lg transition-colors min-h-touch touch-manipulation ${
+                  selectedDay === day.index
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+                }`}
               >
-                Cancel
+                <div className="font-semibold">{day.name.slice(0, 3)}</div>
+                <div className="text-xs opacity-75 mt-1">{day.date}</div>
               </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Meal type selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Meal Type
+          </label>
+          <div className="grid grid-cols-1 xs:grid-cols-3 gap-2">
+            {mealTypes.map((mealType) => (
+              <button
+                key={mealType.value}
+                type="button"
+                onClick={() => setSelectedMealType(mealType.value)}
+                className={`px-4 py-3 text-sm font-medium rounded-lg transition-colors min-h-touch touch-manipulation ${
+                  selectedMealType === mealType.value
+                    ? 'bg-primary-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
+                }`}
+              >
+                {mealType.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Servings input */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Servings
+          </label>
+          <div className="flex items-center justify-center space-x-4">
+            <button
+              type="button"
+              onClick={() => setServings(Math.max(1, servings - 1))}
+              disabled={servings <= 1}
+              className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
+              aria-label="Decrease servings"
+            >
+              <Minus className="w-5 h-5" />
+            </button>
+            
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900">{servings}</div>
+              <div className="text-sm text-gray-600">servings</div>
             </div>
-          </form>
+            
+            <button
+              type="button"
+              onClick={() => setServings(Math.min(20, servings + 1))}
+              disabled={servings >= 20}
+              className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
+              aria-label="Increase servings"
+            >
+              <Plus className="w-5 h-5" />
+            </button>
+          </div>
+          
+          <div className="mt-3 text-center">
+            <p className="text-sm text-gray-600">
+              Original recipe serves {recipe.servings}
+              {servings !== recipe.servings && (
+                <span className="ml-2 text-primary-600 font-medium">
+                  (adjusted from {recipe.servings})
+                </span>
+              )}
+            </p>
+          </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };

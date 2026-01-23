@@ -67,21 +67,22 @@ export const KeyboardNavigationHelp: React.FC = () => {
 
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-50"
-        onClick={() => setIsOpen(false)}
-        aria-hidden="true"
-      />
-      
-      {/* Modal */}
-      <div
-        role="dialog"
-        aria-labelledby="keyboard-help-title"
-        aria-describedby="keyboard-help-description"
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      >
-        <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      {/* Modal Container */}
+      <div className="modal-overlay">
+        {/* Backdrop */}
+        <div 
+          className="modal-backdrop"
+          onClick={() => setIsOpen(false)}
+          aria-hidden="true"
+        />
+        
+        {/* Modal */}
+        <div
+          role="dialog"
+          aria-labelledby="keyboard-help-title"
+          aria-describedby="keyboard-help-description"
+          className="modal-container modal-container-large"
+        >
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200">
             <div className="flex items-center space-x-3">

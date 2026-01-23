@@ -158,7 +158,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Title */}
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
           Recipe Title <span className="text-red-500">*</span>
         </label>
         <input
@@ -166,7 +166,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+          className={`w-full px-3 xs:px-4 py-3 xs:py-3.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-base touch-manipulation ${
             errors.title ? 'border-red-500' : 'border-gray-300'
           }`}
           placeholder="e.g., Classic Spaghetti Carbonara"
@@ -177,7 +177,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
       {/* Description */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
           Description
         </label>
         <textarea
@@ -185,7 +185,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="w-full px-3 xs:px-4 py-3 xs:py-3.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-base touch-manipulation"
           placeholder="Brief description of your recipe..."
           disabled={isLoading}
         />
@@ -205,16 +205,16 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       </div>
 
       {/* Cuisine and Difficulty */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 xs:gap-6">
         <div>
-          <label htmlFor="cuisine" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="cuisine" className="block text-sm font-medium text-gray-700 mb-2">
             Cuisine <span className="text-red-500">*</span>
           </label>
           <select
             id="cuisine"
             value={cuisine}
             onChange={(e) => setCuisine(e.target.value)}
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+            className={`w-full px-3 xs:px-4 py-3 xs:py-3.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-base touch-manipulation ${
               errors.cuisine ? 'border-red-500' : 'border-gray-300'
             }`}
             disabled={isLoading}
@@ -230,14 +230,14 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         </div>
 
         <div>
-          <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700 mb-2">
             Difficulty <span className="text-red-500">*</span>
           </label>
           <select
             id="difficulty"
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value as 'Easy' | 'Medium' | 'Hard')}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+            className="w-full px-3 xs:px-4 py-3 xs:py-3.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-base touch-manipulation"
             disabled={isLoading}
           >
             {DIFFICULTY_LEVELS.map((level) => (
@@ -250,9 +250,9 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       </div>
 
       {/* Times and Servings */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 xs:gap-6">
         <div>
-          <label htmlFor="prepTime" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="prepTime" className="block text-sm font-medium text-gray-700 mb-2">
             Prep Time (min) <span className="text-red-500">*</span>
           </label>
           <input
@@ -261,7 +261,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             value={prepTime}
             onChange={(e) => setPrepTime(parseInt(e.target.value) || 0)}
             min="1"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+            className={`w-full px-3 xs:px-4 py-3 xs:py-3.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-base touch-manipulation ${
               errors.prepTime ? 'border-red-500' : 'border-gray-300'
             }`}
             disabled={isLoading}
@@ -270,7 +270,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         </div>
 
         <div>
-          <label htmlFor="cookTime" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="cookTime" className="block text-sm font-medium text-gray-700 mb-2">
             Cook Time (min) <span className="text-red-500">*</span>
           </label>
           <input
@@ -279,7 +279,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             value={cookTime}
             onChange={(e) => setCookTime(parseInt(e.target.value) || 0)}
             min="1"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+            className={`w-full px-3 xs:px-4 py-3 xs:py-3.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-base touch-manipulation ${
               errors.cookTime ? 'border-red-500' : 'border-gray-300'
             }`}
             disabled={isLoading}
@@ -288,7 +288,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
         </div>
 
         <div>
-          <label htmlFor="servings" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="servings" className="block text-sm font-medium text-gray-700 mb-2">
             Servings <span className="text-red-500">*</span>
           </label>
           <input
@@ -297,7 +297,7 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
             value={servings}
             onChange={(e) => setServings(parseInt(e.target.value) || 0)}
             min="1"
-            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 ${
+            className={`w-full px-3 xs:px-4 py-3 xs:py-3.5 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-base touch-manipulation ${
               errors.servings ? 'border-red-500' : 'border-gray-300'
             }`}
             disabled={isLoading}
@@ -308,17 +308,17 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
 
       {/* Dietary Tags */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">Dietary Tags</label>
-        <div className="flex flex-wrap gap-2">
+        <label className="block text-sm font-medium text-gray-700 mb-3">Dietary Tags</label>
+        <div className="flex flex-wrap gap-2 xs:gap-3">
           {DIETARY_TAGS.map((tag) => (
             <button
               key={tag}
               type="button"
               onClick={() => toggleDietaryTag(tag)}
-              className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+              className={`px-4 py-2.5 rounded-full text-sm font-medium transition-colors touch-manipulation min-h-touch ${
                 dietaryTags.includes(tag)
                   ? 'bg-green-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300 active:bg-gray-400'
               }`}
               disabled={isLoading}
             >
@@ -357,18 +357,18 @@ export const RecipeForm: React.FC<RecipeFormProps> = ({
       </div>
 
       {/* Form Actions */}
-      <div className="flex justify-end gap-3 pt-4 border-t">
+      <div className="flex flex-col xs:flex-row justify-end gap-3 pt-6 border-t">
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
+          className="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 active:bg-gray-100 transition-colors touch-manipulation min-h-touch"
           disabled={isLoading}
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700 active:bg-green-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation min-h-touch"
           disabled={isLoading}
         >
           {isLoading ? (

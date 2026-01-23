@@ -98,19 +98,26 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
-          className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
+          className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md p-1"
+          aria-expanded={isExpanded}
+          aria-controls="filter-content"
+          aria-label={`${isExpanded ? 'Collapse' : 'Expand'} recipe filters`}
         >
           <svg
             className={`w-5 h-5 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
+            aria-hidden="true"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
           <span className="font-medium">Filters</span>
           {activeFilterCount > 0 && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            <span 
+              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+              aria-label={`${activeFilterCount} active filter${activeFilterCount !== 1 ? 's' : ''}`}
+            >
               {activeFilterCount}
             </span>
           )}
@@ -119,7 +126,8 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
         {activeFilterCount > 0 && (
           <button
             onClick={onClear}
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
+            className="text-sm text-gray-500 hover:text-gray-700 underline focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md p-1"
+            aria-label={`Clear all ${activeFilterCount} active filters`}
           >
             Clear All
           </button>
@@ -128,119 +136,131 @@ export const RecipeFilters: React.FC<RecipeFiltersProps> = ({
 
       {/* Filter Content */}
       {isExpanded && (
-        <div className="p-4 space-y-6">
+        <div id="filter-content" className="p-4 space-y-6" role="region" aria-label="Recipe filter options">
           {/* Quick Toggles */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-900">Quick Filters</h3>
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-gray-900">Quick Filters</legend>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={handleFavoritesToggle}
-                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 ${
                   filters.showFavoritesOnly
                     ? 'bg-red-100 text-red-800 border border-red-200'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
+                aria-pressed={filters.showFavoritesOnly}
+                aria-label={`${filters.showFavoritesOnly ? 'Hide' : 'Show'} favorites only`}
               >
-                <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-4 h-4 mr-1.5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
                   <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
                 </svg>
                 Favorites Only
               </button>
               <button
                 onClick={handleUserRecipesToggle}
-                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${
                   filters.showUserRecipesOnly
                     ? 'bg-green-100 text-green-800 border border-green-200'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
+                aria-pressed={filters.showUserRecipesOnly}
+                aria-label={`${filters.showUserRecipesOnly ? 'Hide' : 'Show'} my recipes only`}
               >
-                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 My Recipes
               </button>
             </div>
-          </div>
+          </fieldset>
 
           {/* Cuisine Filter */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-900">Cuisine</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-gray-900">Cuisine</legend>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2" role="group" aria-label="Select cuisine type">
               {CUISINE_OPTIONS.map((cuisine) => (
                 <button
                   key={cuisine}
                   onClick={() => handleCuisineChange(cuisine)}
-                  className={`px-3 py-2 text-sm rounded-md border transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                     filters.cuisine === cuisine
                       ? 'bg-blue-50 border-blue-200 text-blue-800'
                       : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                   }`}
+                  aria-pressed={filters.cuisine === cuisine}
+                  aria-label={`${filters.cuisine === cuisine ? 'Remove' : 'Apply'} ${cuisine} cuisine filter`}
                 >
                   {cuisine}
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* Dietary Tags Filter */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-900">Dietary Preferences</h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-gray-900">Dietary Preferences</legend>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2" role="group" aria-label="Select dietary preferences">
               {DIETARY_TAG_OPTIONS.map((tag) => (
                 <button
                   key={tag}
                   onClick={() => handleDietaryTagToggle(tag)}
-                  className={`px-3 py-2 text-sm rounded-md border transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 ${
                     filters.dietaryTags?.includes(tag)
                       ? 'bg-green-50 border-green-200 text-green-800'
                       : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                   }`}
+                  aria-pressed={filters.dietaryTags?.includes(tag)}
+                  aria-label={`${filters.dietaryTags?.includes(tag) ? 'Remove' : 'Add'} ${tag.replace('-', ' ')} dietary filter`}
                 >
                   {tag.charAt(0).toUpperCase() + tag.slice(1).replace('-', ' ')}
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* Difficulty Filter */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-900">Difficulty</h3>
-            <div className="flex gap-2">
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-gray-900">Difficulty</legend>
+            <div className="flex gap-2" role="group" aria-label="Select difficulty level">
               {DIFFICULTY_OPTIONS.map((difficulty) => (
                 <button
                   key={difficulty}
                   onClick={() => handleDifficultyChange(difficulty)}
-                  className={`px-4 py-2 text-sm rounded-md border transition-colors ${
+                  className={`px-4 py-2 text-sm rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                     filters.difficulty === difficulty
                       ? 'bg-purple-50 border-purple-200 text-purple-800'
                       : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                   }`}
+                  aria-pressed={filters.difficulty === difficulty}
+                  aria-label={`${filters.difficulty === difficulty ? 'Remove' : 'Apply'} ${difficulty} difficulty filter`}
                 >
                   {difficulty}
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
 
           {/* Cook Time Filter */}
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-900">Maximum Cook Time</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+          <fieldset className="space-y-3">
+            <legend className="text-sm font-medium text-gray-900">Maximum Cook Time</legend>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2" role="group" aria-label="Select maximum cooking time">
               {COOK_TIME_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => handleCookTimeChange(option.value)}
-                  className={`px-3 py-2 text-sm rounded-md border transition-colors ${
+                  className={`px-3 py-2 text-sm rounded-md border transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 ${
                     filters.maxCookTime === option.value
                       ? 'bg-orange-50 border-orange-200 text-orange-800'
                       : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
                   }`}
+                  aria-pressed={filters.maxCookTime === option.value}
+                  aria-label={`${filters.maxCookTime === option.value ? 'Remove' : 'Apply'} ${option.label} cook time filter`}
                 >
                   {option.label}
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
         </div>
       )}
     </div>

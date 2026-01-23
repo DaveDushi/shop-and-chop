@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, forwardRef } from 'react';
 
 export interface RecipeSearchBarProps {
   value: string;
@@ -7,15 +7,14 @@ export interface RecipeSearchBarProps {
   isLoading?: boolean;
 }
 
-export const RecipeSearchBar: React.FC<RecipeSearchBarProps> = ({
-  value,
-  onChange,
-  placeholder = "Search recipes...",
-  isLoading = false,
-}) => {
+export const RecipeSearchBar = forwardRef<HTMLInputElement, RecipeSearchBarProps>(
+  ({ value, onChange, placeholder = "Search recipes...", isLoading = false }, ref) => {
   const [internalValue, setInternalValue] = useState(value);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalRef = useRef<HTMLInputElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Use forwarded ref or internal ref
+  const inputRef = ref || internalRef;
 
   // Sync internal value with prop value
   useEffect(() => {
@@ -49,7 +48,7 @@ export const RecipeSearchBar: React.FC<RecipeSearchBarProps> = ({
     }
     
     // Focus the input after clearing
-    if (inputRef.current) {
+    if (inputRef && 'current' in inputRef && inputRef.current) {
       inputRef.current.focus();
     }
   }, [onChange]);
@@ -143,4 +142,4 @@ export const RecipeSearchBar: React.FC<RecipeSearchBarProps> = ({
       )}
     </div>
   );
-};
+});

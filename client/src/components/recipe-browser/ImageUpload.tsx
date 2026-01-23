@@ -1,4 +1,6 @@
 import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
+import { OptimizedImage } from '../common/OptimizedImage';
+import { createCachedBlobUrl } from '../../utils/imagePreloader';
 
 export interface ImageUploadProps {
   value?: File | string; // File for new upload, string URL for existing image
@@ -25,11 +27,9 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   // Generate preview URL from File
   const generatePreview = (file: File) => {
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setPreview(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    // Use createCachedBlobUrl for better memory management
+    const blobUrl = createCachedBlobUrl(file);
+    setPreview(blobUrl);
   };
 
   // Validate file
@@ -156,10 +156,14 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
         {preview ? (
           // Preview
           <div className="relative">
-            <img
+            <OptimizedImage
               src={preview}
               alt="Recipe preview"
-              className="max-h-64 mx-auto rounded-lg object-cover"
+              className="max-h-64 mx-auto rounded-lg"
+              width={256}
+              height={256}
+              quality="high"
+              lazy={false}
             />
             {!disabled && (
               <button

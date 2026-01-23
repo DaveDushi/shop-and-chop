@@ -6,6 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { AuthProvider } from './hooks/useAuth';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import { Layout } from './components/common/Layout';
+import { ToastProvider } from './components/common/Toast';
 import { queryClient } from './config/queryClient';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
@@ -19,7 +20,8 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <DndProvider backend={HTML5Backend}>
         <AuthProvider>
-          <Routes>
+          <ToastProvider>
+            <Routes>
             {/* Public routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -60,6 +62,7 @@ function App() {
             {/* Catch all route */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </ToastProvider>
         </AuthProvider>
       </DndProvider>
       <ReactQueryDevtools initialIsOpen={false} />

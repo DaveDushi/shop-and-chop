@@ -14,6 +14,22 @@ export default {
       '2xl': '1536px',
     },
     extend: {
+      spacing: {
+        'touch': '44px', // Minimum touch target size
+        'touch-lg': '48px', // Larger touch target
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
+      minHeight: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
+      minWidth: {
+        'touch': '44px',
+        'touch-lg': '48px',
+      },
       colors: {
         primary: {
           50: '#ecfdf5',

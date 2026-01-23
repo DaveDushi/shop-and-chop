@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
 import { Recipe } from '../../types/Recipe.types';
+import { OptimizedImage } from '../common/OptimizedImage';
 
 export interface RecipeCardProps {
   recipe: Recipe;
@@ -12,20 +13,29 @@ export interface RecipeCardProps {
   isFavoriteLoading?: boolean;
   isAuthenticated?: boolean;
   currentUserId?: string;
+  tabIndex?: number;
+  'data-recipe-card'?: boolean;
+  'aria-posinset'?: number;
+  'aria-setsize'?: number;
 }
 
-export const RecipeCard: React.FC<RecipeCardProps> = ({
-  recipe,
-  viewMode,
-  onSelect,
-  onFavoriteToggle,
-  onAddToMealPlan,
-  onEdit,
-  onDelete,
-  isFavoriteLoading = false,
-  isAuthenticated = false,
-  currentUserId,
-}) => {
+export const RecipeCard = forwardRef<HTMLDivElement, RecipeCardProps>(
+  ({
+    recipe,
+    viewMode,
+    onSelect,
+    onFavoriteToggle,
+    onAddToMealPlan,
+    onEdit,
+    onDelete,
+    isFavoriteLoading = false,
+    isAuthenticated = false,
+    currentUserId,
+    tabIndex = 0,
+    'data-recipe-card': dataRecipeCard,
+    'aria-posinset': ariaPosinset,
+    'aria-setsize': ariaSetsize,
+  }, ref) => {
   const totalTime = recipe.prepTime + recipe.cookTime;
   const displayName = recipe.name || recipe.title || 'Untitled Recipe';
   const isUserRecipe = !!recipe.userId; // User recipe if userId exists
@@ -52,29 +62,34 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
   if (viewMode === 'list') {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+      <div 
+        ref={ref}
+        className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-green-500"
+        tabIndex={tabIndex}
+        data-recipe-card={dataRecipeCard}
+        role="gridcell"
+        aria-posinset={ariaPosinset}
+        aria-setsize={ariaSetsize}
+        aria-label={`Recipe: ${displayName}. ${totalTime} minutes, ${recipe.servings} servings, ${recipe.difficulty} difficulty.`}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onSelect();
+          }
+        }}
+      >
         <div className="flex items-start space-x-4">
           {/* Recipe Image */}
           <div className="flex-shrink-0 relative">
-            <div className="w-24 h-18 bg-gray-200 rounded-md overflow-hidden">
-              {recipe.imageUrl ? (
-                <img
-                  src={recipe.imageUrl}
-                  alt={displayName}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400">
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              )}
-            </div>
+            <OptimizedImage
+              src={recipe.imageUrl}
+              alt={displayName}
+              className="w-24 h-18 rounded-md"
+              width={96}
+              height={72}
+              quality="medium"
+              lazy={true}
+            />
             
             {/* Favorite indicator overlay */}
             {recipe.isFavorited && (
@@ -93,6 +108,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                 <h3 
                   className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-green-600 transition-colors"
                   onClick={onSelect}
+                  role="button"
+                  tabIndex={-1}
+                  aria-label={`View ${displayName} recipe details`}
                 >
                   {displayName}
                   {isUserRecipe && (
@@ -153,15 +171,16 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center space-x-2 ml-4">
+              <div className="flex items-center space-x-1 ml-4">
                 {isOwner && onEdit && (
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onEdit();
                     }}
-                    className="p-2 text-gray-400 hover:text-blue-600 rounded-full transition-colors"
+                    className="p-2 text-gray-400 hover:text-blue-600 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
                     title="Edit recipe"
+                    aria-label={`Edit ${displayName} recipe`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -174,8 +193,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                       e.stopPropagation();
                       onDelete();
                     }}
-                    className="p-2 text-gray-400 hover:text-red-600 rounded-full transition-colors"
+                    className="p-2 text-gray-400 hover:text-red-600 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
                     title="Delete recipe"
+                    aria-label={`Delete ${displayName} recipe`}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -185,7 +205,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                 <button
                   onClick={onFavoriteToggle}
                   disabled={isFavoriteLoading || !isAuthenticated}
-                  className={`p-2 rounded-full transition-all duration-200 ${
+                  className={`p-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation ${
                     isFavoriteLoading || !isAuthenticated
                       ? 'text-gray-300 cursor-not-allowed'
                       : recipe.isFavorited
@@ -201,6 +221,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                       ? 'Remove from favorites'
                       : 'Add to favorites'
                   }
+                  aria-label={
+                    !isAuthenticated
+                      ? 'Login to favorite recipes'
+                      : isFavoriteLoading
+                      ? 'Updating favorite status...'
+                      : recipe.isFavorited
+                      ? `Remove ${displayName} from favorites`
+                      : `Add ${displayName} to favorites`
+                  }
                 >
                   {isFavoriteLoading ? (
                     <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -214,8 +243,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                 </button>
                 <button
                   onClick={onAddToMealPlan}
-                  className="p-2 text-gray-400 hover:text-green-600 rounded-full transition-colors"
+                  className="p-2 text-gray-400 hover:text-green-600 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
                   title="Add to meal plan"
+                  aria-label={`Add ${displayName} to meal plan`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -223,8 +253,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                 </button>
                 <button
                   onClick={onSelect}
-                  className="p-2 text-gray-400 hover:text-blue-600 rounded-full transition-colors"
+                  className="p-2 text-gray-400 hover:text-blue-600 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
                   title="View recipe details"
+                  aria-label={`View ${displayName} recipe details`}
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -241,30 +272,35 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
   // Grid view
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+    <div 
+      ref={ref}
+      className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow focus:outline-none focus:ring-2 focus:ring-green-500"
+      tabIndex={tabIndex}
+      data-recipe-card={dataRecipeCard}
+      role="gridcell"
+      aria-posinset={ariaPosinset}
+      aria-setsize={ariaSetsize}
+      aria-label={`Recipe: ${displayName}. ${totalTime} minutes, ${recipe.servings} servings, ${recipe.difficulty} difficulty.`}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+    >
       {/* Recipe Image */}
       <div className="aspect-w-16 aspect-h-12 bg-gray-200 relative">
-        {recipe.imageUrl ? (
-          <img
+        <div onClick={onSelect} className="cursor-pointer">
+          <OptimizedImage
             src={recipe.imageUrl}
             alt={displayName}
-            className="w-full h-48 object-cover cursor-pointer"
-            onClick={onSelect}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.style.display = 'none';
-            }}
+            className="w-full h-48"
+            width={320}
+            height={192}
+            quality="medium"
+            lazy={true}
           />
-        ) : (
-          <div 
-            className="w-full h-48 flex items-center justify-center text-gray-400 cursor-pointer hover:bg-gray-100 transition-colors"
-            onClick={onSelect}
-          >
-            <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-        )}
+        </div>
         
         {/* Favorite indicator overlay */}
         {recipe.isFavorited && (
@@ -282,6 +318,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           <h3 
             className="text-lg font-semibold text-gray-900 cursor-pointer hover:text-green-600 transition-colors line-clamp-2 flex-1"
             onClick={onSelect}
+            role="button"
+            tabIndex={-1}
+            aria-label={`View ${displayName} recipe details`}
           >
             {displayName}
           </h3>
@@ -340,15 +379,16 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
 
         {/* Action Buttons */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1">
             {isOwner && onEdit && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onEdit();
                 }}
-                className="p-2 text-gray-400 hover:text-blue-600 rounded-full transition-colors"
+                className="p-2 text-gray-400 hover:text-blue-600 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
                 title="Edit recipe"
+                aria-label={`Edit ${displayName} recipe`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -361,8 +401,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="p-2 text-gray-400 hover:text-red-600 rounded-full transition-colors"
+                className="p-2 text-gray-400 hover:text-red-600 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
                 title="Delete recipe"
+                aria-label={`Delete ${displayName} recipe`}
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -372,7 +413,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             <button
               onClick={onFavoriteToggle}
               disabled={isFavoriteLoading || !isAuthenticated}
-              className={`p-2 rounded-full transition-all duration-200 ${
+              className={`p-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation ${
                 isFavoriteLoading || !isAuthenticated
                   ? 'text-gray-300 cursor-not-allowed'
                   : recipe.isFavorited
@@ -388,6 +429,15 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
                   ? 'Remove from favorites'
                   : 'Add to favorites'
               }
+              aria-label={
+                !isAuthenticated
+                  ? 'Login to favorite recipes'
+                  : isFavoriteLoading
+                  ? 'Updating favorite status...'
+                  : recipe.isFavorited
+                  ? `Remove ${displayName} from favorites`
+                  : `Add ${displayName} to favorites`
+              }
             >
               {isFavoriteLoading ? (
                 <svg className="w-5 h-5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -401,8 +451,9 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
             </button>
             <button
               onClick={onAddToMealPlan}
-              className="p-2 text-gray-400 hover:text-green-600 rounded-full transition-colors"
+              className="p-2 text-gray-400 hover:text-green-600 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 min-h-touch min-w-touch flex items-center justify-center touch-manipulation"
               title="Add to meal plan"
+              aria-label={`Add ${displayName} to meal plan`}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -411,7 +462,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           </div>
           <button
             onClick={onSelect}
-            className="px-3 py-1 text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
+            className="px-4 py-2 text-sm text-green-600 hover:text-green-700 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-green-500 rounded min-h-touch touch-manipulation"
+            aria-label={`View ${displayName} recipe details`}
           >
             View Recipe
           </button>
@@ -419,4 +471,4 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
       </div>
     </div>
   );
-};
+});

@@ -120,11 +120,11 @@ export const MealCard: React.FC<MealCardProps> = ({
             {/* Direct Delete Button */}
             <button
               onClick={handleRemove}
-              className="p-1.5 rounded-full bg-white shadow-sm border border-gray-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:border-red-200 touch-manipulation"
+              className="p-2 rounded-full bg-white shadow-sm border border-gray-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:border-red-200 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
               title="Remove meal"
               aria-label={`Remove ${recipe.name} from meal plan`}
             >
-              <X className="h-3 w-3 text-gray-600 hover:text-red-600" />
+              <X className="h-4 w-4 text-gray-600 hover:text-red-600" />
             </button>
           </div>
         </div>
@@ -160,33 +160,33 @@ export const MealCard: React.FC<MealCardProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1"></div>
               {onServingChange ? (
-                <div className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1">
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
                   <button
                     onClick={(e) => handleServingChange(-1, e)}
                     disabled={servings <= 1}
-                    className="p-0.5 hover:bg-gray-200 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 touch-manipulation"
+                    className="p-2 hover:bg-gray-200 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
                     title="Decrease servings"
                     aria-label="Decrease servings"
                   >
-                    <Minus className="h-2.5 w-2.5" />
+                    <Minus className="h-4 w-4" />
                   </button>
-                  <div className="flex items-center space-x-1 min-w-[24px] justify-center">
-                    <Users className="h-3 w-3" />
-                    <span className="font-medium text-xs">{servings}</span>
+                  <div className="flex items-center space-x-1 min-w-[32px] justify-center">
+                    <Users className="h-4 w-4" />
+                    <span className="font-medium text-sm">{servings}</span>
                   </div>
                   <button
                     onClick={(e) => handleServingChange(1, e)}
-                    className="p-0.5 hover:bg-gray-200 rounded-full transition-colors duration-200 touch-manipulation"
+                    className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
                     title="Increase servings"
                     aria-label="Increase servings"
                   >
-                    <Plus className="h-2.5 w-2.5" />
+                    <Plus className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1">
-                  <Users className="h-3 w-3" />
-                  <span className="font-medium text-xs">{servings}</span>
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
+                  <Users className="h-4 w-4" />
+                  <span className="font-medium text-sm">{servings}</span>
                 </div>
               )}
             </div>
@@ -223,33 +223,33 @@ export const MealCard: React.FC<MealCardProps> = ({
             {/* Compact Serving Adjustment Controls */}
             <div className="flex items-center">
               {onServingChange ? (
-                <div className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1">
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
                   <button
                     onClick={(e) => handleServingChange(-1, e)}
                     disabled={servings <= 1}
-                    className="p-0.5 hover:bg-gray-200 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 touch-manipulation"
+                    className="p-2 hover:bg-gray-200 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
                     title="Decrease servings"
                     aria-label="Decrease servings"
                   >
-                    <Minus className="h-2.5 w-2.5" />
+                    <Minus className="h-4 w-4" />
                   </button>
-                  <div className="flex items-center space-x-1 min-w-[24px] justify-center">
-                    <Users className="h-3 w-3" />
-                    <span className="font-medium text-xs">{servings}</span>
+                  <div className="flex items-center space-x-1 min-w-[32px] justify-center">
+                    <Users className="h-4 w-4" />
+                    <span className="font-medium text-sm">{servings}</span>
                   </div>
                   <button
                     onClick={(e) => handleServingChange(1, e)}
-                    className="p-0.5 hover:bg-gray-200 rounded-full transition-colors duration-200 touch-manipulation"
+                    className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
                     title="Increase servings"
                     aria-label="Increase servings"
                   >
-                    <Plus className="h-2.5 w-2.5" />
+                    <Plus className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1">
-                  <Users className="h-3 w-3" />
-                  <span className="font-medium text-xs">{servings}</span>
+                <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
+                  <Users className="h-4 w-4" />
+                  <span className="font-medium text-sm">{servings}</span>
                 </div>
               )}
             </div>
@@ -299,11 +299,11 @@ export const MealCard: React.FC<MealCardProps> = ({
         {/* Direct Delete Button */}
         <button
           onClick={handleRemove}
-          className="p-1.5 rounded-full bg-white shadow-sm border border-gray-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:border-red-200 hover:scale-105 touch-manipulation"
+          className="p-2 rounded-full bg-white shadow-sm border border-gray-200 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-200 hover:bg-red-50 hover:border-red-200 hover:scale-105 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
           title="Remove meal"
           aria-label={`Remove ${recipe.name} from meal plan`}
         >
-          <X className="h-3.5 w-3.5 text-gray-600 hover:text-red-600" />
+          <X className="h-4 w-4 text-gray-600 hover:text-red-600" />
         </button>
       </div>
 
@@ -337,33 +337,33 @@ export const MealCard: React.FC<MealCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex-1"></div>
             {onServingChange ? (
-              <div className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1">
+              <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
                 <button
                   onClick={(e) => handleServingChange(-1, e)}
                   disabled={servings <= 1}
-                  className="p-0.5 hover:bg-gray-200 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 touch-manipulation"
+                  className="p-2 hover:bg-gray-200 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
                   title="Decrease servings"
                   aria-label="Decrease servings"
                 >
-                  <Minus className="h-2.5 w-2.5" />
+                  <Minus className="h-4 w-4" />
                 </button>
-                <div className="flex items-center space-x-1 min-w-[24px] justify-center" title={`Serves ${servings} people`}>
-                  <Users className="h-3 w-3" />
-                  <span className="font-medium text-xs">{servings}</span>
+                <div className="flex items-center space-x-1 min-w-[32px] justify-center" title={`Serves ${servings} people`}>
+                  <Users className="h-4 w-4" />
+                  <span className="font-medium text-sm">{servings}</span>
                 </div>
                 <button
                   onClick={(e) => handleServingChange(1, e)}
-                  className="p-0.5 hover:bg-gray-200 rounded-full transition-colors duration-200 touch-manipulation"
+                  className="p-2 hover:bg-gray-200 rounded-full transition-colors duration-200 touch-manipulation min-h-touch min-w-touch flex items-center justify-center"
                   title="Increase servings"
                   aria-label="Increase servings"
                 >
-                  <Plus className="h-2.5 w-2.5" />
+                  <Plus className="h-4 w-4" />
                 </button>
               </div>
             ) : (
-              <div className="flex items-center space-x-1 bg-gray-100 rounded-full px-2 py-1" title={`Serves ${servings} people`}>
-                <Users className="h-3 w-3" />
-                <span className="font-medium text-xs">{servings}</span>
+              <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2" title={`Serves ${servings} people`}>
+                <Users className="h-4 w-4" />
+                <span className="font-medium text-sm">{servings}</span>
               </div>
             )}
           </div>

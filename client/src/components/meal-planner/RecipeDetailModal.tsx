@@ -60,16 +60,15 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="modal-overlay">
       {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="modal-backdrop"
         onClick={onClose}
       />
       
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+      <div className="modal-container modal-container-large flex flex-col">
           {/* Header */}
           <div className="flex items-start justify-between p-6 border-b border-gray-200">
             <div className="flex-1 pr-4">
@@ -302,7 +301,6 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };
