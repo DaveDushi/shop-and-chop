@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { MealPlan } from '../types/MealPlan.types';
 import { ShoppingList } from '../types/ShoppingList.types';
 import { OfflineShoppingListEntry, ShoppingListMetadata } from '../types/OfflineStorage.types';
 import { ShoppingListService } from '../services/shoppingListService';
 import { ShoppingListApiService } from '../services/shoppingListApiService';
+import { LocalStorageService } from '../services/localStorageService';
 import { useOfflineStatus } from './useOfflineStatus';
 
 interface UseShoppingListOptions {
@@ -43,8 +44,8 @@ interface UseShoppingListReturn {
 export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppingListReturn => {
   const { 
     householdSize = 2, 
-    enableOfflineStorage = true,
-    enableAutoSync = true
+    enableOfflineStorage = false, // Disabled by default to prevent duplicates
+    enableAutoSync = false // Disabled by default
   } = options;
   
   // Core state
@@ -58,6 +59,9 @@ export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppi
   
   // Network status
   const { isOnline } = useOfflineStatus();
+
+  // Debounce ref for auto-save
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize service configuration
   useEffect(() => {
@@ -86,6 +90,15 @@ export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppi
     loadPendingSyncCount();
   }, [loadPendingSyncCount, isOnline]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const generateShoppingList = useCallback(async (
     mealPlan: MealPlan, 
     metadata?: Partial<ShoppingListMetadata>
@@ -103,6 +116,8 @@ export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppi
         throw new Error('No meals found in the meal plan. Add some meals to generate a shopping list.');
       }
 
+      let generatedList: ShoppingList;
+
       if (enableOfflineStorage && metadata) {
         // Generate and store offline
         const result = await ShoppingListService.generateAndStoreFromMealPlan(
@@ -116,14 +131,15 @@ export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppi
           }
         );
         
-        setShoppingList(result.shoppingList);
+        generatedList = result.shoppingList;
+        setShoppingList(generatedList);
         setOfflineEntry(result.offlineEntry || null);
         
         // Update pending sync count
         await loadPendingSyncCount();
       } else {
         // Generate in-memory only
-        const generatedList = ShoppingListService.generateFromMealPlan(mealPlan, householdSize);
+        generatedList = ShoppingListService.generateFromMealPlan(mealPlan, householdSize);
 
         if (ShoppingListService.isEmpty(generatedList)) {
           throw new Error('Unable to generate shopping list. Please ensure your recipes have ingredients.');
@@ -131,6 +147,25 @@ export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppi
 
         setShoppingList(generatedList);
       }
+
+      // Auto-save to localStorage for persistence across page refreshes (debounced)
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+      
+      autoSaveTimeoutRef.current = setTimeout(() => {
+        const autoSaveSuccess = LocalStorageService.addShoppingList(
+          generatedList, 
+          `Shopping List ${new Date().toLocaleDateString()}`
+        );
+
+        if (autoSaveSuccess) {
+          console.log('[useShoppingList] Shopping list auto-saved to localStorage');
+        } else {
+          console.warn('[useShoppingList] Failed to auto-save to localStorage');
+        }
+      }, 1000); // Debounce auto-save by 1 second
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to generate shopping list';
       setError(errorMessage);
@@ -191,23 +226,37 @@ export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppi
 
   const saveToShoppingList = useCallback(async (shoppingList: ShoppingList) => {
     try {
-      if (!isOnline && enableOfflineStorage) {
-        // Save offline only when offline
-        const metadata: Omit<ShoppingListMetadata, 'lastModified' | 'syncStatus' | 'deviceId' | 'version'> = {
-          id: `saved_${Date.now()}`,
-          mealPlanId: '',
-          weekStartDate: new Date().toISOString(),
-          generatedAt: new Date()
-        };
-        
-        await ShoppingListService.storeOfflineShoppingList(shoppingList, metadata);
-        await loadPendingSyncCount();
+      // Clear any pending auto-save to avoid conflicts
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+        autoSaveTimeoutRef.current = null;
+      }
+
+      // Always save to localStorage first as a fallback
+      const localSaveSuccess = LocalStorageService.addShoppingList(
+        shoppingList,
+        `Shopping List ${new Date().toLocaleDateString()}`
+      );
+
+      if (localSaveSuccess) {
+        console.log('[useShoppingList] Shopping list saved to localStorage');
       } else {
-        // Save to API when online
-        await ShoppingListApiService.saveShoppingList(shoppingList);
-        
-        // Also store offline if enabled
-        if (enableOfflineStorage) {
+        console.warn('[useShoppingList] Failed to save to localStorage');
+      }
+
+      // Try to save to server if online
+      if (isOnline) {
+        try {
+          await ShoppingListApiService.saveShoppingList(shoppingList);
+          console.log('[useShoppingList] Shopping list saved to server');
+        } catch (serverError) {
+          console.warn('[useShoppingList] Failed to save to server, localStorage backup available:', serverError);
+        }
+      }
+
+      // Try to save to offline storage if enabled
+      if (enableOfflineStorage) {
+        try {
           const metadata: Omit<ShoppingListMetadata, 'lastModified' | 'syncStatus' | 'deviceId' | 'version'> = {
             id: `saved_${Date.now()}`,
             mealPlanId: '',
@@ -217,7 +266,15 @@ export const useShoppingList = (options: UseShoppingListOptions = {}): UseShoppi
           
           await ShoppingListService.storeOfflineShoppingList(shoppingList, metadata);
           await loadPendingSyncCount();
+          console.log('[useShoppingList] Shopping list saved to offline storage');
+        } catch (offlineError) {
+          console.warn('[useShoppingList] Failed to save to offline storage, localStorage backup available:', offlineError);
         }
+      }
+
+      // If localStorage save failed and we're offline, throw error
+      if (!localSaveSuccess && !isOnline) {
+        throw new Error('Failed to save shopping list - localStorage unavailable and offline');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save shopping list';

@@ -36,7 +36,11 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
     clearShoppingList,
     clearError: clearShoppingListError,
     saveToShoppingList
-  } = useShoppingList({ householdSize: 2 });
+  } = useShoppingList({ 
+    householdSize: 2,
+    enableOfflineStorage: false, // Disable offline storage to prevent duplicates
+    enableAutoSync: false
+  });
 
   // Shopping list modal state
   const [showShoppingListModal, setShowShoppingListModal] = React.useState(false);

@@ -103,7 +103,11 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,eot}'],
-        // Offline-first caching strategies
+        // Configure navigation routing for SPA - this is the key fix
+        navigateFallback: '/index.html',
+        navigateFallbackAllowlist: [/^(?!\/__).*$/], // Allow all routes except Vite dev server routes
+        navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/, /^\/api/], // Deny Vite internal routes, files with extensions, and API routes
+        // Runtime caching strategies
         runtimeCaching: [
           // Cache-first for static assets
           {

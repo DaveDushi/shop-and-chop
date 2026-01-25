@@ -16,6 +16,19 @@ if (import.meta.env.PROD) {
       });
     });
     
+    // Initialize shopping list service for offline capabilities
+    setTimeout(() => {
+      console.log('🛒 Initializing Shopping List Service...');
+      import('./services/shoppingListService').then(({ ShoppingListService }) => {
+        console.log('✅ Shopping List Service loaded, initializing...');
+        ShoppingListService.initialize().catch((error) => {
+          console.warn('Shopping List Service initialization failed:', error);
+        });
+      }).catch((error) => {
+        console.warn('Shopping List Service import failed:', error);
+      });
+    }, 50);
+    
     // Initialize sync queue manager after other services are loaded
     setTimeout(() => {
       console.log('🔄 Initializing Sync Queue Manager...');
@@ -29,6 +42,18 @@ if (import.meta.env.PROD) {
   }, 1000);
 } else {
   console.log('🔧 Development mode: PWA services disabled');
+  // Initialize services in development mode too for testing offline features
+  setTimeout(() => {
+    console.log('🛒 Initializing Shopping List Service (dev mode)...');
+    import('./services/shoppingListService').then(({ ShoppingListService }) => {
+      console.log('✅ Shopping List Service loaded, initializing...');
+      ShoppingListService.initialize().catch((error) => {
+        console.warn('Shopping List Service initialization failed:', error);
+      });
+    }).catch((error) => {
+      console.warn('Shopping List Service import failed:', error);
+    });
+  }, 500);
 }
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

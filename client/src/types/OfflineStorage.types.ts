@@ -154,6 +154,6 @@ export interface ServiceWorkerMessage {
 
 // Error Types
 export interface OfflineStorageError extends Error {
-  code: 'QUOTA_EXCEEDED' | 'DB_ERROR' | 'SYNC_ERROR' | 'NETWORK_ERROR';
+  code: 'QUOTA_EXCEEDED' | 'DB_ERROR' | 'SYNC_ERROR' | 'NETWORK_ERROR' | 'VALIDATION_ERROR';
   details?: any;
 }

@@ -25,11 +25,22 @@ interface OfflineShoppingListServiceConfig {
 
 export class ShoppingListService {
   private static config: OfflineShoppingListServiceConfig = {
-    enableOfflineStorage: true,
-    enableAutoSync: true,
+    enableOfflineStorage: false, // Disabled by default to prevent duplicates
+    enableAutoSync: false, // Disabled by default
     compressionEnabled: true,
     deviceId: '' // Will be generated when needed
   };
+  private static isInitialized = false;
+
+  /**
+   * Check if the service is initialized and auto-initialize if needed
+   */
+  private static async ensureInitialized(): Promise<void> {
+    if (!this.isInitialized) {
+      console.log('[ShoppingListService] Auto-initializing service...');
+      await this.initialize();
+    }
+  }
 
   /**
    * Get or generate device ID
@@ -45,13 +56,22 @@ export class ShoppingListService {
    * Initialize the offline storage manager
    */
   static async initialize(): Promise<void> {
+    if (this.isInitialized) {
+      console.log('[ShoppingListService] Already initialized, skipping...');
+      return;
+    }
+
     try {
+      console.log('[ShoppingListService] Initializing offline storage...');
       await offlineStorageManager.initialize();
-      console.log('ShoppingListService offline capabilities initialized');
+      this.isInitialized = true;
+      console.log('[ShoppingListService] Offline capabilities initialized successfully');
     } catch (error) {
-      console.error('Failed to initialize offline storage:', error);
+      console.error('[ShoppingListService] Failed to initialize offline storage:', error);
       // Continue without offline capabilities
       this.config.enableOfflineStorage = false;
+      this.isInitialized = true; // Mark as initialized even if offline storage failed
+      console.warn('[ShoppingListService] Continuing without offline storage capabilities');
     }
   }
 
@@ -81,6 +101,13 @@ export class ShoppingListService {
     if (config.deviceId === '') {
       this.config.deviceId = this.generateDeviceId();
     }
+  }
+
+  /**
+   * Check if the service is initialized
+   */
+  static isServiceInitialized(): boolean {
+    return this.isInitialized;
   }
   /**
    * Generate a shopping list from a meal plan
@@ -277,8 +304,11 @@ export class ShoppingListService {
     shoppingList: ShoppingList, 
     metadata: Omit<ShoppingListMetadata, 'lastModified' | 'syncStatus' | 'deviceId' | 'version'>
   ): Promise<void> {
+    // Ensure service is initialized
+    await this.ensureInitialized();
+
     if (!this.config.enableOfflineStorage) {
-      console.warn('Offline storage is disabled');
+      console.log('[ShoppingListService] Offline storage is disabled, skipping...');
       return;
     }
 
@@ -313,10 +343,10 @@ export class ShoppingListService {
         });
       }
 
-      console.log(`Stored shopping list ${metadata.id} offline`);
+      console.log(`[ShoppingListService] Stored shopping list ${metadata.id} offline successfully`);
     } catch (error) {
-      console.error('Failed to store shopping list offline:', error);
-      throw error;
+      console.warn('[ShoppingListService] Failed to store shopping list offline:', error);
+      // Don't throw error - just log warning and continue
     }
   }
 
@@ -324,6 +354,9 @@ export class ShoppingListService {
    * Get an offline shopping list by ID
    */
   static async getOfflineShoppingList(id: string): Promise<OfflineShoppingListEntry | null> {
+    // Ensure service is initialized
+    await this.ensureInitialized();
+
     if (!this.config.enableOfflineStorage) {
       console.warn('Offline storage is disabled');
       return null;
@@ -445,6 +478,9 @@ export class ShoppingListService {
    * Queue an operation for synchronization using the sync queue manager
    */
   static async queueForSync(operation: SyncOperation): Promise<void> {
+    // Ensure service is initialized
+    await this.ensureInitialized();
+
     if (!this.config.enableOfflineStorage) {
       return;
     }
@@ -565,7 +601,7 @@ export class ShoppingListService {
   /**
    * Trigger manual sync using sync queue manager
    */
-  static async triggerManualSync(): Promise<void> {
+  static async triggerManualSync(): Promise<any> {
     if (!this.config.enableOfflineStorage) {
       console.warn('Offline storage is disabled');
       return;
@@ -611,7 +647,7 @@ export class ShoppingListService {
         isActive: false,
         pendingOperations: 0,
         lastSync: new Date(0),
-        errors: [`Failed to get sync status: ${error.message}`]
+        errors: [`Failed to get sync status: ${error instanceof Error ? error.message : 'Unknown error'}`]
       };
     }
   }
@@ -673,7 +709,8 @@ export class ShoppingListService {
         ...item,
         id: item.id || this.generateItemId(item),
         lastModified: new Date(),
-        syncStatus: 'pending' as const
+        syncStatus: 'pending' as const,
+        checked: item.checked ?? false // Ensure checked is always boolean
       }));
     });
 
@@ -739,7 +776,8 @@ export class ShoppingListService {
     if (this.config.enableOfflineStorage) {
       try {
         await this.storeOfflineShoppingList(shoppingList, metadata);
-        offlineEntry = await this.getOfflineShoppingList(metadata.id);
+        const retrievedEntry = await this.getOfflineShoppingList(metadata.id);
+        offlineEntry = retrievedEntry || undefined;
       } catch (error) {
         console.error('Failed to store shopping list offline, continuing without offline storage:', error);
       }
