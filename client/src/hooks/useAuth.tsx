@@ -25,23 +25,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = authService.getStoredToken();
-      const storedUser = authService.getStoredUser();
+      try {
+        const token = authService.getStoredToken();
+        const storedUser = authService.getStoredUser();
 
-      if (token && storedUser) {
-        try {
-          // Verify token is still valid by fetching fresh profile
-          const { user: freshUser } = await authService.getProfile();
-          setUser(freshUser);
-          authService.storeAuthData(token, freshUser);
-        } catch (error) {
-          // Token is invalid, clear stored data
-          authService.logout();
-          setUser(null);
+        if (token && storedUser) {
+          try {
+            // Verify token is still valid by fetching fresh profile
+            const { user: freshUser } = await authService.getProfile();
+            setUser(freshUser);
+            authService.storeAuthData(token, freshUser);
+          } catch (error) {
+            // Token is invalid, clear stored data
+            console.warn('Token verification failed, clearing stored auth data');
+            authService.logout();
+            setUser(null);
+          }
         }
+      } catch (error) {
+        console.error('Auth initialization error:', error);
+        // Clear any potentially corrupted auth data
+        authService.logout();
+        setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     };
 
     initializeAuth();

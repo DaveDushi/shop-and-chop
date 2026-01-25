@@ -1,4 +1,5 @@
 export interface ShoppingListItem {
+  id?: string; // Optional for backward compatibility, required for offline
   name: string;
   quantity: string;
   unit: string;

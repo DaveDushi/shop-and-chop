@@ -11,3 +11,4 @@ export { RecipeSidebar } from './RecipeSidebar';
 export { RecipeCard } from './RecipeCard';
 export { RecipeSelectionModal } from './RecipeSelectionModal';
 export { UndoRedoControls } from './UndoRedoControls';
+export { OfflineShoppingListView } from './OfflineShoppingListView';

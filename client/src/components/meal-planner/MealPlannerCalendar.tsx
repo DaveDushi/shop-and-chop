@@ -144,7 +144,7 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
   };
 
   // Handle shopping list generation
-  const handleGenerateShoppingList = () => {
+  const handleGenerateShoppingList = async () => {
     if (mealPlan) {
       // Track which meals are included in the shopping list
       const mealIds = new Set<string>();
@@ -157,7 +157,15 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
       });
       setMealsInShoppingList(mealIds);
       
-      generateShoppingList(mealPlan);
+      // Generate shopping list with metadata for offline storage
+      const metadata = {
+        id: `mp_${mealPlan.id}_${Date.now()}`,
+        mealPlanId: mealPlan.id,
+        weekStartDate: currentWeek.toISOString(),
+        generatedAt: new Date()
+      };
+      
+      await generateShoppingList(mealPlan, metadata);
       setShowShoppingListModal(true);
     }
   };

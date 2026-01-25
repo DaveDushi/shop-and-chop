@@ -214,43 +214,6 @@
   background: #94a3b8;
 }
 
-/* Modal positioning fixes */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.modal-container {
-  position: relative;
-  background: white;
-  border-radius: 0.5rem;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  max-height: 90vh;
-  overflow-y: auto;
-  width: 100%;
-  max-width: 32rem; /* 512px */
-}
-
-.modal-container-large {
-  max-width: 56rem; /* 896px */
-}
-
-/* Ensure modals are always visible and centered */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  z-index: 40;
-}
-
 /* Loading animation */
 .loading-spinner {
   @apply inline-block h-4 w-4 animate-spin rounded-full border-2 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite];

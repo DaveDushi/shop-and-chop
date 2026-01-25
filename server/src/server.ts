@@ -10,6 +10,7 @@ import authRoutes from './routes/auth';
 import recipeRoutes from './routes/recipes';
 import mealPlanRoutes from './routes/mealPlans';
 import userRoutes from './routes/users';
+// import shoppingListRoutes from './routes/shoppingLists'; // Temporarily disabled due to import issue
 
 // Load environment variables
 dotenv.config();
@@ -55,6 +56,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/meal-plans', mealPlanRoutes);
 app.use('/api/users', userRoutes);
+// app.use('/api/shopping-lists', shoppingListRoutes); // Temporarily disabled due to import issue
 
 // 404 handler
 app.use('*', (req, res) => {

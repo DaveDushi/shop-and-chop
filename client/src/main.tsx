@@ -5,6 +5,32 @@ import { Toaster } from 'react-hot-toast';
 import App from './App.tsx';
 import './styles/globals.css';
 
+// Initialize PWA functionality in the background (only in production)
+if (import.meta.env.PROD) {
+  setTimeout(() => {
+    console.log('🚀 Initializing PWA services...');
+    import('./services/pwaManager').then(({ pwaManager }) => {
+      console.log('✅ PWA Manager loaded, initializing...');
+      pwaManager.initialize().catch((error) => {
+        console.warn('PWA initialization failed:', error);
+      });
+    });
+    
+    // Initialize sync queue manager after other services are loaded
+    setTimeout(() => {
+      console.log('🔄 Initializing Sync Queue Manager...');
+      import('./services/syncQueueManager').then(({ syncQueueManager }) => {
+        console.log('✅ Sync Queue Manager loaded, initializing...');
+        syncQueueManager.initialize();
+      }).catch((error) => {
+        console.warn('Sync queue manager initialization failed:', error);
+      });
+    }, 100);
+  }, 1000);
+} else {
+  console.log('🔧 Development mode: PWA services disabled');
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>

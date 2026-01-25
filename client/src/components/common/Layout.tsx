@@ -2,6 +2,7 @@ import React, { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../hooks/useAuth';
+import { useOfflineStatus } from '../../hooks/useOfflineStatus';
 import { 
   Home, 
   Calendar, 
@@ -13,6 +14,9 @@ import {
   X
 } from 'lucide-react';
 import { useState } from 'react';
+import { OfflineBanner } from './OfflineBanner';
+import { SyncStatusIndicator } from './SyncStatusIndicator';
+import { SyncProgressIndicator } from './SyncProgressIndicator';
 
 interface LayoutProps {
   children: ReactNode;
@@ -22,6 +26,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Offline status hook
+  const {
+    isOnline,
+    connectionType,
+    isActive: isSyncActive,
+    pendingOperations,
+    lastSync,
+    errors: syncErrors,
+    triggerManualSync
+  } = useOfflineStatus();
 
   const navigation = [
     { name: 'Home', href: '/', icon: Home },
@@ -75,6 +90,17 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* User Menu */}
             <div className="flex items-center space-x-2 xs:space-x-4">
+              {/* Sync Status Indicator */}
+              <SyncStatusIndicator
+                isOnline={isOnline}
+                connectionType={connectionType}
+                isActive={isSyncActive}
+                pendingOperations={pendingOperations}
+                errors={syncErrors}
+                compact={true}
+                className="hidden sm:flex"
+              />
+              
               <div className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
                 <User className="w-4 h-4" />
                 <span>{user?.name}</span>
@@ -151,8 +177,25 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-4 xs:py-6 md:py-8">
+        {/* Offline Banner */}
+        <OfflineBanner
+          isOnline={isOnline}
+          pendingOperations={pendingOperations}
+          lastSync={lastSync}
+          onManualSync={triggerManualSync}
+          className="mb-4"
+        />
+        
         {children}
       </main>
+
+      {/* Sync Progress Indicator */}
+      <SyncProgressIndicator
+        isActive={isSyncActive}
+        totalOperations={pendingOperations}
+        completedOperations={0} // This would be calculated from sync progress
+        errors={syncErrors}
+      />
     </div>
   );
 };
