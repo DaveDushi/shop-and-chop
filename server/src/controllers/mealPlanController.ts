@@ -118,7 +118,7 @@ export const createMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
   
   if (recipeIds.length > 0) {
     // Remove duplicates for validation - same recipe can be used multiple times
-    const uniqueRecipeIds = [...new Set(recipeIds)];
+    const uniqueRecipeIds: string[] = [...new Set(recipeIds)];
     
     const recipes = await prisma.recipe.findMany({
       where: { id: { in: uniqueRecipeIds } }
@@ -127,7 +127,7 @@ export const createMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
     if (recipes.length !== uniqueRecipeIds.length) {
       // Find which recipe IDs are missing
       const foundRecipeIds = recipes.map(r => r.id);
-      const missingRecipeIds = uniqueRecipeIds.filter(id => !foundRecipeIds.includes(id));
+      const missingRecipeIds = uniqueRecipeIds.filter((id: string) => !foundRecipeIds.includes(id));
       throw createError(`Recipes not found: ${missingRecipeIds.join(', ')}`, 404);
     }
   }
@@ -259,7 +259,7 @@ export const updateMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
   
   if (recipeIds.length > 0) {
     // Remove duplicates for validation - same recipe can be used multiple times
-    const uniqueRecipeIds = [...new Set(recipeIds)];
+    const uniqueRecipeIds: string[] = [...new Set(recipeIds)];
     
     const recipes = await prisma.recipe.findMany({
       where: { id: { in: uniqueRecipeIds } }
@@ -268,7 +268,7 @@ export const updateMealPlan = asyncHandler(async (req: AuthenticatedRequest, res
     if (recipes.length !== uniqueRecipeIds.length) {
       // Find which recipe IDs are missing
       const foundRecipeIds = recipes.map(r => r.id);
-      const missingRecipeIds = uniqueRecipeIds.filter(id => !foundRecipeIds.includes(id));
+      const missingRecipeIds = uniqueRecipeIds.filter((id: string) => !foundRecipeIds.includes(id));
       throw createError(`Recipes not found: ${missingRecipeIds.join(', ')}`, 404);
     }
   }

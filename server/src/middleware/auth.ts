@@ -29,7 +29,7 @@ export const authenticateToken = (
 
 export const optionalAuthenticateToken = (
   req: AuthenticatedRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ): void => {
   const authHeader = req.headers.authorization;

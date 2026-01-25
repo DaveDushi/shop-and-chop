@@ -267,7 +267,8 @@ class DataSerializationUtil {
 
     // Serialize shopping list items with type preservation
     Object.keys(entry.shoppingList).forEach(category => {
-      serialized.shoppingList[category] = entry.shoppingList[category].map(item => ({
+      const categoryItems = entry.shoppingList[category as keyof typeof entry.shoppingList];
+      (serialized.shoppingList as any)[category] = categoryItems.map(item => ({
         id: item.id,
         name: item.name,
         quantity: item.quantity,
@@ -342,30 +343,32 @@ class DataSerializationUtil {
     // Compact metadata
     Object.keys(entry.metadata).forEach(key => {
       const mappedKey = metadataMap[key as keyof typeof metadataMap] || key;
-      let value = entry.metadata[key as keyof ShoppingListMetadata];
+      let value: string | boolean | number | Date | undefined = entry.metadata[key as keyof ShoppingListMetadata];
       
       if (value instanceof Date) {
         value = value.getTime(); // Store as timestamp
       }
       
-      compact.m[mappedKey] = value;
+      (compact.m as any)[mappedKey] = value;
     });
 
     // Compact shopping list
     Object.keys(entry.shoppingList).forEach((category, categoryIndex) => {
-      compact.sl[categoryIndex] = {
+      const categoryItems = entry.shoppingList[category as keyof typeof entry.shoppingList];
+      (compact.sl as any)[categoryIndex] = {
         name: category,
-        items: entry.shoppingList[category].map(item => {
+        items: categoryItems.map(item => {
           const compactItem: any = {};
           Object.keys(item).forEach(key => {
             const mappedKey = fieldMap[key as keyof typeof fieldMap] || key;
-            let value = item[key as keyof OfflineShoppingListItem];
+            let value: string | boolean | number | Date | undefined = item[key as keyof OfflineShoppingListItem];
             
             if (value instanceof Date) {
-              value = value.getTime();
+              const timeValue = value.getTime();
+              compactItem[mappedKey] = timeValue;
+            } else {
+              compactItem[mappedKey] = value;
             }
-            
-            compactItem[mappedKey] = value;
           });
           return compactItem;
         })

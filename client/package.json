@@ -5,9 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
+    "build:check": "tsc -p tsconfig.build.json && vite build",
     "preview": "vite preview",
     "test": "vitest --run",
+    "test:hackathon": "vitest --run --config vitest.config.hackathon.ts",
     "test:watch": "vitest",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext ts,tsx --fix"

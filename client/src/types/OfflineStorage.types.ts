@@ -136,6 +136,7 @@ export interface SyncStatus {
   isActive: boolean;
   pendingOperations: number;
   lastSync: Date;
+  lastSyncTime?: Date;
   errors: string[];
 }
 
@@ -148,8 +149,16 @@ export interface PWAInstallationState {
 
 // Service Worker Message Types
 export interface ServiceWorkerMessage {
-  type: 'SYNC_COMPLETE' | 'SYNC_ERROR' | 'CACHE_UPDATED' | 'OFFLINE_READY';
+  type: 'SYNC_COMPLETE' | 'SYNC_ERROR' | 'CACHE_UPDATED' | 'OFFLINE_READY' | 'CLEAR_CACHE' | 'CLEANUP_CACHE';
   payload?: any;
+}
+
+// Sync Result Types
+export interface SyncResult {
+  success: boolean;
+  error?: Error;
+  operationId: string;
+  timestamp: Date;
 }
 
 // Error Types

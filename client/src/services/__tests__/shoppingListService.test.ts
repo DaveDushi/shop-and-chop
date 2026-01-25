@@ -40,12 +40,14 @@ describe('ShoppingListService', () => {
     name: 'Test Recipe',
     ingredients: [
       {
+        id: 'ing-1',
         name: 'Tomatoes',
         quantity: '2',
         unit: 'pieces',
         category: 'Produce'
       },
       {
+        id: 'ing-2',
         name: 'Cheese',
         quantity: '1',
         unit: 'cup',
@@ -57,7 +59,7 @@ describe('ShoppingListService', () => {
     prepTime: 30,
     cookTime: 15,
     difficulty: 'Easy',
-    tags: ['test'],
+    // tags: ['test'], // Removed invalid property
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   };

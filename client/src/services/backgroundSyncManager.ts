@@ -110,7 +110,7 @@ export class BackgroundSyncManager {
 
     try {
       // Register background sync
-      await this.serviceWorkerRegistration?.sync.register(syncTag);
+      await this.serviceWorkerRegistration?.sync?.register(syncTag);
       
       console.log(`Background sync registered: ${syncTag}`);
 

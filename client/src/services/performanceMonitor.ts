@@ -3,6 +3,12 @@
  * Collects and analyzes performance metrics for optimization
  */
 
+// Performance monitoring types
+interface LayoutShift extends PerformanceEntry {
+  value: number;
+  hadRecentInput: boolean;
+}
+
 interface PerformanceMetrics {
   // Core Web Vitals
   lcp?: number; // Largest Contentful Paint
@@ -37,6 +43,7 @@ interface PerformanceMetrics {
   timestamp: number;
   url: string;
   userAgent: string;
+  [key: string]: number | string | undefined;
 }
 
 interface PerformanceThresholds {

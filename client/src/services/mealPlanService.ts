@@ -54,7 +54,7 @@ const isRetryableError = (error: any): boolean => {
   }
   
   // Axios timeout errors
-  if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
+  if (error.code === 'ECONNABORTED' && error instanceof Error ? error.message : 'Unknown error'.includes('timeout')) {
     return true;
   }
   
@@ -95,7 +95,7 @@ const withRetry = async <T>(
       const delay = calculateRetryDelay(attempt);
       console.warn(
         `${operationName} failed (attempt ${attempt + 1}/${maxRetries + 1}). Retrying in ${Math.round(delay)}ms...`,
-        error.message
+        error instanceof Error ? error.message : 'Unknown error'
       );
       
       await new Promise(resolve => setTimeout(resolve, delay));

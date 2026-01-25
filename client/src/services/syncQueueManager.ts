@@ -14,6 +14,7 @@ import {
   SyncOperation,
   OfflineShoppingListEntry,
   SyncStatus,
+  SyncResult as ImportedSyncResult,
   OfflineStorageError
 } from '../types/OfflineStorage.types';
 import { offlineStorageManager } from './offlineStorageManager';
@@ -34,7 +35,7 @@ interface ConflictResolution {
   requiresUserInput?: boolean;
 }
 
-interface SyncResult {
+interface LocalSyncResult {
   success: boolean;
   operation: SyncOperation;
   error?: Error;
@@ -46,7 +47,7 @@ interface SyncBatchResult {
   successfulOperations: number;
   failedOperations: number;
   conflicts: number;
-  results: SyncResult[];
+  results: LocalSyncResult[];
 }
 
 export class SyncQueueManager {
@@ -60,7 +61,7 @@ export class SyncQueueManager {
   };
 
   private isProcessing = false;
-  private processingPromise: Promise<void> | null = null;
+  private processingPromise: Promise<SyncBatchResult> | null = null;
   private retryTimeouts = new Map<string, NodeJS.Timeout>();
   private syncListeners: Array<(status: SyncStatus) => void> = [];
 
@@ -280,8 +281,8 @@ export class SyncQueueManager {
   /**
    * Process a batch of operations
    */
-  private async processBatch(operations: SyncOperation[]): Promise<SyncResult[]> {
-    const results: SyncResult[] = [];
+  private async processBatch(operations: SyncOperation[]): Promise<LocalSyncResult[]> {
+    const results: LocalSyncResult[] = [];
 
     for (const operation of operations) {
       try {
@@ -293,7 +294,7 @@ export class SyncQueueManager {
           await offlineStorageManager.removeSyncOperation(operation.id);
         } else {
           // Schedule retry for failed operations
-          await this.scheduleRetry(operation, result.error);
+          await this.scheduleRetry(operation, result.error || new Error('Unknown sync error'));
         }
 
       } catch (error) {
@@ -314,7 +315,7 @@ export class SyncQueueManager {
   /**
    * Process a single sync operation
    */
-  private async processSingleOperation(operation: SyncOperation): Promise<SyncResult> {
+  private async processSingleOperation(operation: SyncOperation): Promise<LocalSyncResult> {
     console.log(`Processing sync operation: ${operation.type} for ${operation.shoppingListId}`);
 
     try {
@@ -343,7 +344,7 @@ export class SyncQueueManager {
   /**
    * Process create operation
    */
-  private async processCreateOperation(operation: SyncOperation): Promise<SyncResult> {
+  private async processCreateOperation(operation: SyncOperation): Promise<LocalSyncResult> {
     try {
       const response = await this.apiCall('POST', '/api/shopping-lists/sync', {
         operation: 'create',
@@ -375,7 +376,7 @@ export class SyncQueueManager {
   /**
    * Process update operation
    */
-  private async processUpdateOperation(operation: SyncOperation): Promise<SyncResult> {
+  private async processUpdateOperation(operation: SyncOperation): Promise<LocalSyncResult> {
     try {
       // Get current local data for conflict detection
       const localData = await offlineStorageManager.getShoppingList(operation.shoppingListId);
@@ -410,7 +411,7 @@ export class SyncQueueManager {
   /**
    * Process delete operation
    */
-  private async processDeleteOperation(operation: SyncOperation): Promise<SyncResult> {
+  private async processDeleteOperation(operation: SyncOperation): Promise<LocalSyncResult> {
     try {
       const response = await this.apiCall('DELETE', `/api/shopping-lists/sync/${operation.shoppingListId}`);
 
@@ -431,7 +432,7 @@ export class SyncQueueManager {
   /**
    * Process item status change operation (check/uncheck)
    */
-  private async processItemStatusOperation(operation: SyncOperation): Promise<SyncResult> {
+  private async processItemStatusOperation(operation: SyncOperation): Promise<LocalSyncResult> {
     try {
       const response = await this.apiCall('PATCH', `/api/shopping-lists/sync/${operation.shoppingListId}/items`, {
         operation: operation.type,
@@ -653,7 +654,7 @@ export class SyncQueueManager {
         isActive: false,
         pendingOperations: 0,
         lastSync: new Date(0),
-        errors: [`Failed to get sync status: ${error.message}`]
+        errors: [`Failed to get sync status: ${error instanceof Error ? error.message : 'Unknown error'}`]
       };
     }
   }

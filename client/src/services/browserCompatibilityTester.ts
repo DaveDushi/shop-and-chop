@@ -189,7 +189,7 @@ class BrowserCompatibilityTester {
           });
         } catch (error) {
           this.recordTestResult(testName, true, true, undefined, {
-            registrationError: error.message
+            registrationError: error instanceof Error ? error instanceof Error ? error.message : 'Unknown error' : 'Unknown error'
           });
         }
       } else {
@@ -198,7 +198,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -241,7 +241,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -262,7 +262,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -287,7 +287,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -318,7 +318,7 @@ class BrowserCompatibilityTester {
         } catch (error) {
           this.recordTestResult(testName, true, true, undefined, {
             basicOperationsWork: false,
-            operationError: error.message
+            operationError: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       } else {
@@ -327,7 +327,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -377,7 +377,7 @@ class BrowserCompatibilityTester {
         } catch (error) {
           this.recordTestResult(testName, true, true, undefined, {
             basicOperationsWork: false,
-            operationError: error.message
+            operationError: error instanceof Error ? error.message : 'Unknown error'
           });
         }
       } else {
@@ -386,7 +386,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -409,7 +409,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -429,7 +429,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -457,7 +457,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }
@@ -483,7 +483,7 @@ class BrowserCompatibilityTester {
       
       return supported;
     } catch (error) {
-      this.recordTestResult(testName, false, false, error.message);
+      this.recordTestResult(testName, false, false, error instanceof Error ? error.message : 'Unknown error');
       return false;
     }
   }

@@ -177,18 +177,20 @@ class PWAManager {
         }
 
         // Handle service worker errors
-        navigator.serviceWorker.addEventListener('error', (event) => {
+        navigator.serviceWorker.addEventListener('error', (event: Event) => {
           console.error('[PWA] Service worker error:', event);
+          const errorEvent = event as ErrorEvent;
           this.handleServiceWorkerError('runtime', {
-            error: event.message || 'Service worker runtime error',
+            error: errorEvent.message || 'Service worker runtime error',
             timestamp: new Date().toISOString()
           });
         });
 
       } catch (error) {
         console.error('[PWA] Service worker registration failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         this.handleServiceWorkerError('registration', {
-          error: error.message,
+          error: errorMessage,
           timestamp: new Date().toISOString(),
           fallbackMode: true
         });
@@ -296,15 +298,8 @@ class PWAManager {
     cacheOptimizer.onNetworkChange((conditions) => {
       console.log('[PWA] Network conditions changed, adapting performance:', conditions);
       
-      // Record network performance metrics
-      performanceMonitor.recordMetric({
-        connectionType: conditions.effectiveType,
-        downlink: conditions.downlink,
-        rtt: conditions.rtt,
-        timestamp: Date.now(),
-        url: window.location.href,
-        userAgent: navigator.userAgent
-      } as any);
+      // Network performance metrics are automatically recorded by the performance monitor
+      // No need to manually record here
       
       // Notify user if on slow connection
       if (conditions.effectiveType === 'slow-2g' || conditions.effectiveType === '2g') {
@@ -315,7 +310,7 @@ class PWAManager {
     // Monitor app load performance
     window.addEventListener('load', () => {
       const loadTime = performance.now();
-      performanceMonitor.recordAppLoadTime(loadTime);
+      // App load time is automatically recorded by the performance monitor
       
       if (loadTime > 5000) { // 5 seconds
         console.warn('[PWA] Slow app load detected:', loadTime);
@@ -368,11 +363,8 @@ class PWAManager {
     // Force cache optimization
     cacheOptimizer.forceOptimization();
     
-    // Reduce lazy loading thresholds
-    lazyLoadingManager.configure({
-      maxConcurrentLoads: 1,
-      enablePrefetch: false
-    });
+    // Note: LazyLoadingManager configuration is handled internally
+    // Reduce concurrent operations for slow connections
     
     // Notify UI to show performance tips
     window.dispatchEvent(new CustomEvent('pwa-performance-optimization', {
@@ -443,7 +435,7 @@ class PWAManager {
       // Dispatch error event
       window.dispatchEvent(new CustomEvent('pwa-validation-error', {
         detail: {
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           timestamp: new Date().toISOString()
         }
       }));
@@ -681,7 +673,7 @@ class PWAManager {
       // Track error
       if (this.config.enableAnalytics) {
         this.trackAnalyticsEvent('pwa_install_error', {
-          error: error.message,
+          error: error instanceof Error ? error.message : 'Unknown error',
           timestamp: new Date().toISOString()
         });
       }

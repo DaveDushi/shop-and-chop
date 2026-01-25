@@ -16,12 +16,12 @@ import userRoutes from './routes/users';
 dotenv.config();
 
 const app = express();
-const PORT = 3001; // Force port 3001 for development
+const PORT = process.env.PORT || 3001;
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
+  origin: process.env['NODE_ENV'] === 'production' 
     ? ['https://your-domain.com'] 
     : ['http://localhost:3000', 'http://localhost:5173'],
   credentials: true
@@ -43,11 +43,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (_req, res) => {
   res.status(200).json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env['NODE_ENV'] || 'development'
   });
 });
 
@@ -73,7 +73,7 @@ app.use(errorHandler);
 app.listen(PORT, () => {
   console.log(`🚀 Shop&Chop server running on port ${PORT}`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
 });
 
 export default app;

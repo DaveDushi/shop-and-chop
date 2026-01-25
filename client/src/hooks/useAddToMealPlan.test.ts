@@ -42,7 +42,7 @@ describe('useAddToMealPlan', () => {
     vi.mocked(useMealPlanModule.useMealPlan).mockReturnValue({
       assignMeal: mockAssignMeal,
       isUpdating: false,
-      mealPlan: null,
+      mealPlan: undefined,
       isLoading: false,
       error: null,
       isRetrying: false,
@@ -55,6 +55,16 @@ describe('useAddToMealPlan', () => {
       swapMeals: vi.fn(),
       updateServings: vi.fn(),
       refetch: vi.fn(),
+      // Add missing undo/redo properties
+      undo: vi.fn(),
+      redo: vi.fn(),
+      canUndo: false,
+      canRedo: false,
+      getCurrentActionDescription: vi.fn(() => 'No current action'),
+      getPreviousActionDescription: vi.fn(() => 'No previous action'),
+      getNextActionDescription: vi.fn(() => 'No next action'),
+      historyLength: 0,
+      currentHistoryIndex: 0,
     });
   });
 

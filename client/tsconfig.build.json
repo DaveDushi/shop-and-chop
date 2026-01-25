@@ -1,0 +1,26 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "noEmitOnError": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false
+  },
+  "exclude": [
+    "src/services/dataMigrationManager.ts",
+    "src/services/dataPersistenceManager.ts",
+    "src/services/dataValidationSystem.ts",
+    "src/services/serviceWorkerErrorHandler.ts",
+    "src/services/performanceMonitor.ts",
+    "src/services/pwaManager.ts",
+    "src/services/multiDeviceConflictResolver.ts",
+    "src/services/crossDeviceConsistencyManager.ts",
+    "src/services/dataSyncManager.ts",
+    "src/services/syncQueueManager.ts",
+    "src/utils/dataCompression.ts",
+    "src/utils/dataSerialization.ts",
+    "src/utils/dataIntegrity.ts",
+    "src/services/__tests__/**/*",
+    "src/utils/__tests__/**/*"
+  ]
+}

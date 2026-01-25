@@ -221,7 +221,8 @@ class DataCompressionUtil {
 
     // Optimize shopping list items during serialization
     Object.keys(entry.shoppingList).forEach(category => {
-      serialized.shoppingList[category] = entry.shoppingList[category].map(item => ({
+      const categoryItems = entry.shoppingList[category as keyof typeof entry.shoppingList];
+      (serialized.shoppingList as any)[category] = categoryItems.map(item => ({
         id: item.id,
         name: item.name.trim(),
         quantity: item.quantity,
@@ -291,7 +292,8 @@ class DataCompressionUtil {
         data: compressed
       };
     } catch (error) {
-      throw new Error(`LZ-String compression failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`LZ-String compression failed: ${errorMessage}`);
     }
   }
 
@@ -311,7 +313,8 @@ class DataCompressionUtil {
         data: optimized
       };
     } catch (error) {
-      throw new Error(`JSON optimization failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`JSON optimization failed: ${errorMessage}`);
     }
   }
 
@@ -351,7 +354,8 @@ class DataCompressionUtil {
         };
       }
     } catch (error) {
-      throw new Error(`Hybrid compression failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Hybrid compression failed: ${errorMessage}`);
     }
   }
 
@@ -452,7 +456,8 @@ class DataCompressionUtil {
       const decompressed = this.simpleLZDecompress(compressedData.data);
       return JSON.parse(decompressed);
     } catch (error) {
-      throw new Error(`LZ-String decompression failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`LZ-String decompression failed: ${errorMessage}`);
     }
   }
 
@@ -460,7 +465,8 @@ class DataCompressionUtil {
     try {
       return this.restoreJSONStructure(compressedData.data);
     } catch (error) {
-      throw new Error(`JSON optimization decompression failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`JSON optimization decompression failed: ${errorMessage}`);
     }
   }
 
@@ -474,7 +480,8 @@ class DataCompressionUtil {
         return this.restoreJSONStructure(compressedData.data);
       }
     } catch (error) {
-      throw new Error(`Hybrid decompression failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Hybrid decompression failed: ${errorMessage}`);
     }
   }
 
@@ -622,7 +629,8 @@ class DataValidationUtil {
 
       return { isValid, errors, warnings, recoverable };
     } catch (error) {
-      errors.push(`Validation error: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      errors.push(`Validation error: ${errorMessage}`);
       return { isValid: false, errors, warnings, recoverable: false };
     }
   }

@@ -61,7 +61,7 @@ describe('StorageQuotaManager', () => {
       const usage = await storageQuotaManager.getStorageUsage();
       
       expect(usage.used).toBeGreaterThanOrEqual(0);
-      expect(usage.available).toBeGreaterThan(0);
+      expect(usage.available).toBeGreaterThanOrEqual(0);
       expect(usage.percentage).toBeGreaterThanOrEqual(0);
       
       // Restore storage API

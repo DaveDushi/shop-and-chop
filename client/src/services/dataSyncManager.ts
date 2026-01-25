@@ -20,6 +20,15 @@ import { syncQueueManager } from './syncQueueManager';
 import { backgroundSyncManager } from './backgroundSyncManager';
 import { connectionMonitor } from './connectionMonitor';
 
+// Define SyncStatus type
+interface SyncStatus {
+  isActive: boolean;
+  pendingOperations: number;
+  lastSyncTime?: Date;
+  lastSync?: Date;
+  errors: string[];
+}
+
 interface DataSyncConfig {
   syncEndpoint: string;
   conflictResolutionStrategy: 'local-wins' | 'server-wins' | 'merge' | 'manual';

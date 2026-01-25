@@ -295,7 +295,7 @@ export const useMealPlan = (weekStart: Date) => {
     // This would typically create a new meal plan for the target week
     // For now, we'll just log the action as it requires more complex state management
     console.log('Duplicate week functionality - would create meal plan for:', targetWeekStart);
-    toast.info('Week duplication feature coming soon!');
+    toast('Week duplication feature coming soon!');
     // TODO: Implement full week duplication with new meal plan creation
   }, []);
 
@@ -407,5 +407,15 @@ export const useMealPlan = (weekStart: Date) => {
     swapMeals,
     updateServings,
     refetch,
+    // Undo/Redo functionality placeholders
+    undo: () => console.log('Undo functionality not implemented'),
+    redo: () => console.log('Redo functionality not implemented'),
+    canUndo: false,
+    canRedo: false,
+    getCurrentActionDescription: () => 'No current action',
+    getPreviousActionDescription: () => 'No previous action',
+    getNextActionDescription: () => 'No next action',
+    historyLength: 0,
+    currentHistoryIndex: 0,
   };
 };

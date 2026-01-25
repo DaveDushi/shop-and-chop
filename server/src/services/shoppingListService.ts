@@ -1,6 +1,7 @@
 interface MealPlanItem {
   servings: number;
   recipe: {
+    title: string;
     servings: number;
     ingredients: {
       name: string;
@@ -128,7 +129,7 @@ const formatQuantity = (quantity: number): string => {
   // Round to reasonable precision
   if (quantity < 1) {
     // Convert to fraction for small amounts
-    const fractions = [
+    const fractions: [number, string][] = [
       [0.125, '1/8'],
       [0.25, '1/4'],
       [0.33, '1/3'],
