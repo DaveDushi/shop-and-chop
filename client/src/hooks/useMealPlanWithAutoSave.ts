@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useMealPlan } from './useMealPlan';
 import { useAutoSave } from './useAutoSave';
+import { extendedMealPlanService } from '../services/extendedMealPlanService';
 import { MealType } from '../types/MealPlan.types';
 import { Recipe } from '../types/Recipe.types';
 import toast from 'react-hot-toast';
@@ -131,12 +132,31 @@ export const useMealPlanWithAutoSave = (weekStart: Date) => {
     }
   }, [baseMealPlan, triggerAutoSave]);
 
-  // Enhanced update servings with auto-save
-  const updateServings = useCallback((dayIndex: number, mealType: MealType, servings: number) => {
+  // Enhanced update servings with auto-save and manual override support
+  const updateServings = useCallback(async (dayIndex: number, mealType: MealType, servings: number, isManualOverride?: boolean) => {
     isApplyingChangesRef.current = true;
     try {
-      baseMealPlan.updateServings(dayIndex, mealType, servings);
-      triggerAutoSave();
+      if (isManualOverride && baseMealPlan.mealPlan) {
+        // Handle manual override serving changes using the extended service
+        const dayKey = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][dayIndex];
+        const meal = baseMealPlan.mealPlan.meals[dayKey]?.[mealType];
+        
+        if (meal) {
+          try {
+            await extendedMealPlanService.setManualServingOverride(baseMealPlan.mealPlan.id, meal.recipeId, servings);
+            // Update the local state optimistically
+            baseMealPlan.updateServings(dayIndex, mealType, servings);
+            triggerAutoSave();
+          } catch (error) {
+            console.error('Failed to set manual serving override:', error);
+            toast.error('Failed to update serving size');
+          }
+        }
+      } else {
+        // Handle regular serving changes
+        baseMealPlan.updateServings(dayIndex, mealType, servings);
+        triggerAutoSave();
+      }
     } finally {
       isApplyingChangesRef.current = false;
     }

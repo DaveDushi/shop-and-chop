@@ -2,6 +2,24 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi } from 'vitest';
 import { MealPlannerCalendar } from './MealPlannerCalendar';
+import { HouseholdSizeProvider } from '../../contexts/HouseholdSizeContext';
+
+// Mock the auth hook
+vi.mock('../../hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user-id', householdSize: 4 },
+    isAuthenticated: true,
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+// Mock userPreferencesService
+vi.mock('../../services/userPreferencesService', () => ({
+  userPreferencesService: {
+    getCurrentUserHouseholdSize: vi.fn(() => Promise.resolve(4)),
+    validateHouseholdSize: vi.fn(() => ({ isValid: true })),
+  },
+}));
 
 // Mock the hooks
 vi.mock('../../hooks/useMealPlannerCalendar', () => ({
@@ -40,7 +58,9 @@ const renderWithQueryClient = (component: React.ReactElement) => {
   const queryClient = createTestQueryClient();
   return render(
     <QueryClientProvider client={queryClient}>
-      {component}
+      <HouseholdSizeProvider>
+        {component}
+      </HouseholdSizeProvider>
     </QueryClientProvider>
   );
 };

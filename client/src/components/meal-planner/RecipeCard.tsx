@@ -3,6 +3,8 @@ import { useDrag } from 'react-dnd';
 import { Recipe } from '../../types/Recipe.types';
 import { DragItemTypes, RecipeDragItem, DragCollectedProps } from '../../types/DragDrop.types';
 import { Plus } from 'lucide-react';
+import { useHouseholdSize } from '../../contexts/HouseholdSizeContext';
+import { ScalingIndicator } from '../common/ScalingIndicator';
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -11,6 +13,7 @@ interface RecipeCardProps {
   isDraggable?: boolean;
   className?: string;
   showSelectButton?: boolean;
+  showScaling?: boolean; // New prop to show scaling information
 }
 
 export const RecipeCard: React.FC<RecipeCardProps> = ({
@@ -20,9 +23,13 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
   isDraggable = false,
   className = '',
   showSelectButton = false,
+  showScaling = false,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Get household size for scaling preview
+  const { householdSize } = useHouseholdSize();
 
   // Set up drag functionality
   const [{ isDragging, canDrag }, dragRef] = useDrag<
@@ -203,6 +210,19 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({
           >
             {recipe.description}
           </p>
+        )}
+
+        {/* Scaling Preview */}
+        {showScaling && householdSize !== recipe.servings && (
+          <div className="mb-2">
+            <ScalingIndicator
+              originalServings={recipe.servings || 1}
+              currentServings={householdSize}
+              scalingFactor={householdSize / (recipe.servings || 1)}
+              scalingSource="household"
+              compact={true}
+            />
+          </div>
         )}
 
         {/* Recipe Stats */}

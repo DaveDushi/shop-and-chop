@@ -8,22 +8,25 @@ interface MealSlotComponentProps {
   mealType: MealType;
   mealLabel: string;
   meal?: MealSlotType;
+  mealPlanId?: string;
   onMealAssign: (dayIndex: number, mealType: MealType, recipe: Recipe) => void;
   onMealRemove: (dayIndex: number, mealType: MealType) => void;
   onMealSlotClick: (dayIndex: number, mealType: MealType) => void;
   onMealCardClick?: (recipe: Recipe, meal?: MealSlotType) => void;
-  onServingChange?: (dayIndex: number, mealType: MealType, newServings: number) => void;
+  onServingChange?: (dayIndex: number, mealType: MealType, newServings: number, isManualOverride?: boolean) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
   weekStartDate?: Date;
   isInShoppingList?: boolean;
+  useManualOverride?: boolean;
 }
 
 export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
   dayIndex,
   mealType,
   meal,
+  mealPlanId,
   onMealAssign,
   onMealRemove,
   onMealCardClick,
@@ -33,6 +36,7 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
   onDuplicateDay,
   weekStartDate,
   isInShoppingList = false,
+  useManualOverride = false,
 }) => {
   const handleMealAssign = (recipe: Recipe) => {
     onMealAssign(dayIndex, mealType, recipe);
@@ -42,9 +46,9 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
     onMealRemove(dayIndex, mealType);
   };
 
-  const handleServingChange = (newServings: number) => {
+  const handleServingChange = (newServings: number, isManualOverride?: boolean) => {
     if (onServingChange) {
-      onServingChange(dayIndex, mealType, newServings);
+      onServingChange(dayIndex, mealType, newServings, isManualOverride);
     }
   };
 
@@ -53,6 +57,7 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
       dayIndex={dayIndex}
       mealType={mealType}
       meal={meal}
+      mealPlanId={mealPlanId}
       onMealAssign={handleMealAssign}
       onMealRemove={handleMealRemove}
       onMealCardClick={onMealCardClick}
@@ -62,6 +67,7 @@ export const MealSlotComponent: React.FC<MealSlotComponentProps> = ({
       onDuplicateDay={onDuplicateDay}
       weekStartDate={weekStartDate}
       isInShoppingList={isInShoppingList}
+      useManualOverride={useManualOverride}
     />
   );
 };

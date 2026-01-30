@@ -10,10 +10,14 @@ import {
 } from '../types/OfflineStorage.types';
 import { offlineStorageManager } from './offlineStorageManager';
 import { syncQueueManager } from './syncQueueManager';
+import { scalingService } from './scalingService';
+import { measurementConverter } from './measurementConverter';
+import { userPreferencesService } from './userPreferencesService';
 
 interface MealPlanItem {
   servings: number;
   recipe: Recipe;
+  manualServingOverride?: boolean;
 }
 
 interface OfflineShoppingListServiceConfig {
@@ -110,9 +114,9 @@ export class ShoppingListService {
     return this.isInitialized;
   }
   /**
-   * Generate a shopping list from a meal plan
+   * Generate a shopping list from a meal plan using scaled quantities
    */
-  static generateFromMealPlan(mealPlan: MealPlan, householdSize: number = 2): ShoppingList {
+  static async generateFromMealPlan(mealPlan: MealPlan, householdSize?: number): Promise<ShoppingList> {
     const meals: MealPlanItem[] = [];
 
     // Extract all meals from the meal plan
@@ -121,52 +125,102 @@ export class ShoppingListService {
         if (mealSlot) {
           meals.push({
             servings: mealSlot.servings,
-            recipe: mealSlot.recipe
+            recipe: mealSlot.recipe,
+            manualServingOverride: mealSlot.manualServingOverride
           });
         }
       });
     });
 
-    return this.generateFromMeals(meals, householdSize);
+    // Get household size if not provided
+    let effectiveHouseholdSize = householdSize;
+    if (effectiveHouseholdSize === undefined) {
+      try {
+        // Try to get from user preferences - for now use default if service fails
+        effectiveHouseholdSize = 2; // Default fallback
+        // TODO: Implement user ID retrieval when auth context is available
+        // effectiveHouseholdSize = await userPreferencesService.getHouseholdSize(userId);
+      } catch (error) {
+        console.warn('Failed to get household size from preferences, using default:', error);
+        effectiveHouseholdSize = 2;
+      }
+    }
+
+    return this.generateFromMeals(meals, effectiveHouseholdSize);
   }
 
   /**
-   * Generate a shopping list from an array of meals
+   * Generate a shopping list from an array of meals using scaling service
    */
   static generateFromMeals(meals: MealPlanItem[], householdSize: number = 2): ShoppingList {
     const consolidatedIngredients = new Map<string, ShoppingListItem>();
 
-    // Process each meal
+    // Process each meal using the scaling service
     meals.forEach(meal => {
-      const { recipe, servings } = meal;
-      const scalingFactor = (servings * householdSize) / recipe.servings;
-
+      const { recipe, servings, manualServingOverride } = meal;
+      
+      // Determine effective serving size using scaling service
+      const effectiveServings = scalingService.getEffectiveServingSize(
+        recipe, 
+        householdSize, 
+        manualServingOverride ? servings : undefined
+      );
+      
+      // Calculate scaling factor
+      const scalingFactor = scalingService.calculateScalingFactor(recipe.servings, effectiveServings);
+      
+      // Scale each ingredient
       recipe.ingredients.forEach(ingredient => {
-        const key = `${ingredient.name.toLowerCase()}-${ingredient.unit.toLowerCase()}`;
+        const scaledIngredient = scalingService.scaleIngredientQuantity(ingredient, scalingFactor);
+        
+        // Create consolidation key based on ingredient name and unit
+        const key = `${ingredient.name.toLowerCase()}-${scaledIngredient.scaledUnit.toLowerCase()}`;
         
         if (consolidatedIngredients.has(key)) {
-          // Consolidate existing ingredient
+          // Consolidate existing ingredient with unit conversion if needed
           const existing = consolidatedIngredients.get(key)!;
           const existingQuantity = this.parseQuantity(existing.quantity);
-          const newQuantity = this.parseQuantity(ingredient.quantity) * scalingFactor;
           
-          existing.quantity = this.formatQuantity(existingQuantity + newQuantity);
-          const recipeName = recipe.name || recipe.title || 'Unknown Recipe';
-          if (!existing.recipes.includes(recipeName)) {
-            existing.recipes.push(recipeName);
+          // Convert units to common unit for consolidation
+          const existingStandard = measurementConverter.convertToCommonUnit(
+            existingQuantity, 
+            existing.unit
+          );
+          const newStandard = measurementConverter.convertToCommonUnit(
+            scaledIngredient.scaledQuantity, 
+            scaledIngredient.scaledUnit
+          );
+          
+          // Check if units are compatible for consolidation
+          if (this.areUnitsCompatible(existing.unit, scaledIngredient.scaledUnit)) {
+            // Use the more common unit (existing one) and sum quantities
+            const totalQuantity = existingQuantity + this.convertToTargetUnit(
+              scaledIngredient.scaledQuantity,
+              scaledIngredient.scaledUnit,
+              existing.unit
+            );
+            
+            // Round to practical measurement
+            const practicalMeasurement = measurementConverter.roundToPracticalMeasurement(
+              totalQuantity, 
+              existing.unit
+            );
+            
+            existing.quantity = practicalMeasurement.displayText.split(' ')[0]; // Extract just the quantity part
+            existing.unit = practicalMeasurement.unit;
+            
+            const recipeName = recipe.name || recipe.title || 'Unknown Recipe';
+            if (!existing.recipes.includes(recipeName)) {
+              existing.recipes.push(recipeName);
+            }
+          } else {
+            // Units not compatible, create separate entry with modified key
+            const newKey = `${ingredient.name.toLowerCase()}-${scaledIngredient.scaledUnit.toLowerCase()}-${Date.now()}`;
+            this.addNewIngredientToList(consolidatedIngredients, newKey, scaledIngredient, recipe);
           }
         } else {
-          // Add new ingredient
-          const scaledQuantity = this.parseQuantity(ingredient.quantity) * scalingFactor;
-          const recipeName = recipe.name || recipe.title || 'Unknown Recipe';
-          consolidatedIngredients.set(key, {
-            name: ingredient.name,
-            quantity: this.formatQuantity(scaledQuantity),
-            unit: ingredient.unit,
-            category: ingredient.category,
-            recipes: [recipeName],
-            checked: false
-          });
+          // Add new ingredient with practical rounding
+          this.addNewIngredientToList(consolidatedIngredients, key, scaledIngredient, recipe);
         }
       });
     });
@@ -185,6 +239,72 @@ export class ShoppingListService {
     return this.sortShoppingList(shoppingList);
   }
 
+  /**
+   * Add a new ingredient to the consolidated list with practical rounding
+   */
+  private static addNewIngredientToList(
+    consolidatedIngredients: Map<string, ShoppingListItem>,
+    key: string,
+    scaledIngredient: any,
+    recipe: Recipe
+  ): void {
+    // Apply practical rounding to the scaled quantity
+    const practicalMeasurement = measurementConverter.roundToPracticalMeasurement(
+      scaledIngredient.scaledQuantity,
+      scaledIngredient.scaledUnit
+    );
+    
+    const recipeName = recipe.name || recipe.title || 'Unknown Recipe';
+    consolidatedIngredients.set(key, {
+      name: scaledIngredient.name,
+      quantity: practicalMeasurement.displayText.split(' ')[0], // Extract just the quantity part
+      unit: practicalMeasurement.unit,
+      category: scaledIngredient.category,
+      recipes: [recipeName],
+      checked: false
+    });
+  }
+
+  /**
+   * Check if two units are compatible for consolidation
+   */
+  private static areUnitsCompatible(unit1: string, unit2: string): boolean {
+    // Normalize units for comparison
+    const normalizeUnit = (unit: string) => unit.toLowerCase().trim();
+    const norm1 = normalizeUnit(unit1);
+    const norm2 = normalizeUnit(unit2);
+    
+    // Same unit is always compatible
+    if (norm1 === norm2) return true;
+    
+    // Define compatible unit groups
+    const volumeUnits = ['cup', 'cups', 'tablespoon', 'tablespoons', 'tbsp', 'teaspoon', 'teaspoons', 'tsp', 'fluid ounce', 'fl oz', 'pint', 'pints', 'quart', 'quarts', 'gallon', 'gallons', 'liter', 'liters', 'l', 'milliliter', 'milliliters', 'ml'];
+    const weightUnits = ['pound', 'pounds', 'lb', 'lbs', 'ounce', 'ounces', 'oz', 'kilogram', 'kilograms', 'kg', 'gram', 'grams', 'g'];
+    const countUnits = ['piece', 'pieces', 'whole', 'clove', 'cloves', 'head', 'heads', 'can', 'cans', 'bottle', 'bottles'];
+    
+    // Check if both units are in the same group
+    const isVolumeUnit = (unit: string) => volumeUnits.includes(unit);
+    const isWeightUnit = (unit: string) => weightUnits.includes(unit);
+    const isCountUnit = (unit: string) => countUnits.includes(unit);
+    
+    return (
+      (isVolumeUnit(norm1) && isVolumeUnit(norm2)) ||
+      (isWeightUnit(norm1) && isWeightUnit(norm2)) ||
+      (isCountUnit(norm1) && isCountUnit(norm2))
+    );
+  }
+
+  /**
+   * Convert quantity from one unit to another compatible unit
+   */
+  private static convertToTargetUnit(quantity: number, fromUnit: string, toUnit: string): number {
+    try {
+      return measurementConverter.convertBetweenSystems(quantity, fromUnit, toUnit);
+    } catch (error) {
+      console.warn(`Failed to convert ${quantity} ${fromUnit} to ${toUnit}, using original quantity:`, error);
+      return quantity;
+    }
+  }
   /**
    * Sort shopping list by category priority and item names
    */
@@ -764,11 +884,11 @@ export class ShoppingListService {
    */
   static async generateAndStoreFromMealPlan(
     mealPlan: MealPlan, 
-    householdSize: number = 2,
+    householdSize?: number,
     metadata: Omit<ShoppingListMetadata, 'lastModified' | 'syncStatus' | 'deviceId' | 'version'>
   ): Promise<{ shoppingList: ShoppingList; offlineEntry?: OfflineShoppingListEntry }> {
-    // Generate the shopping list using existing logic
-    const shoppingList = this.generateFromMealPlan(mealPlan, householdSize);
+    // Generate the shopping list using existing logic with scaling
+    const shoppingList = await this.generateFromMealPlan(mealPlan, householdSize);
 
     let offlineEntry: OfflineShoppingListEntry | undefined;
 

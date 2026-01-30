@@ -4,6 +4,7 @@ import { mealPlanService, MealPlanError } from '../services/mealPlanService';
 import { MealPlan, MealSlot, MealType } from '../types/MealPlan.types';
 import { Recipe } from '../types/Recipe.types';
 import { useAuth } from './useAuth';
+import { useMealPlanScaling } from './useMealPlanScaling';
 import { useCallback, useRef } from 'react';
 import toast from 'react-hot-toast';
 
@@ -17,6 +18,16 @@ export const useMealPlan = (weekStart: Date) => {
   const weekStartNormalized = startOfWeek(weekStart, { weekStartsOn: 1 }); // Monday start
   const weekKey = format(weekStartNormalized, 'yyyy-MM-dd');
   const queryKey = ['mealPlan', user?.id, weekKey];
+
+  // Initialize real-time scaling updates
+  const { triggerScalingUpdate, isUpdating: isScalingUpdating } = useMealPlanScaling({
+    weekStart: weekStartNormalized,
+    enabled: true,
+    onScalingUpdate: (updatedMealPlan) => {
+      // Update the last successful state when scaling updates occur
+      lastSuccessfulStateRef.current = updatedMealPlan;
+    }
+  });
 
   // Query for getting meal plan
   const {
@@ -38,8 +49,9 @@ export const useMealPlan = (weekStart: Date) => {
       if (error instanceof MealPlanError && !error.isRetryable) {
         return false;
       }
-      // Retry up to 3 times for other errors
-      return failureCount < 3;
+      // Reduce retries in development to avoid rate limiting
+      const maxRetries = process.env.NODE_ENV === 'production' ? 3 : 1;
+      return failureCount < maxRetries;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -107,7 +119,8 @@ export const useMealPlan = (weekStart: Date) => {
     },
     // Retry configuration for mutations
     retry: (failureCount, error) => {
-      if (error instanceof MealPlanError && error.isRetryable && failureCount < 2) {
+      const maxRetries = process.env.NODE_ENV === 'production' ? 2 : 0; // No retries in development
+      if (error instanceof MealPlanError && error.isRetryable && failureCount < maxRetries) {
         return true;
       }
       return false;
@@ -395,7 +408,7 @@ export const useMealPlan = (weekStart: Date) => {
     mealPlan,
     isLoading,
     error,
-    isUpdating: updateMealPlanMutation.isPending,
+    isUpdating: updateMealPlanMutation.isPending || isScalingUpdating,
     isRetrying: updateMealPlanMutation.failureCount > 0 && updateMealPlanMutation.isPending,
     lastError: updateMealPlanMutation.error,
     assignMeal,
@@ -407,6 +420,7 @@ export const useMealPlan = (weekStart: Date) => {
     swapMeals,
     updateServings,
     refetch,
+    triggerScalingUpdate,
     // Undo/Redo functionality placeholders
     undo: () => console.log('Undo functionality not implemented'),
     redo: () => console.log('Redo functionality not implemented'),

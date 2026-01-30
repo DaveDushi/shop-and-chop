@@ -268,6 +268,7 @@ export const RecipeSidebar: React.FC<RecipeSidebarProps> = ({
                 onPreview={handleRecipePreview}
                 isDraggable={true}
                 className="w-full"
+                showScaling={true}
               />
             ))}
           </div>

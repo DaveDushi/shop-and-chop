@@ -75,14 +75,15 @@ model MealPlan {
 }
 
 model MealPlanItem {
-  id         String   @id @default(cuid())
-  mealPlanId String
-  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
-  recipeId   String
-  recipe     Recipe   @relation(fields: [recipeId], references: [id])
-  dayOfWeek  Int      // 0-6 (Sunday-Saturday)
-  mealType   String   // breakfast, lunch, dinner
-  servings   Int      @default(1)
+  id                     String   @id @default(cuid())
+  mealPlanId             String
+  mealPlan               MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  recipeId               String
+  recipe                 Recipe   @relation(fields: [recipeId], references: [id])
+  dayOfWeek              Int      // 0-6 (Sunday-Saturday)
+  mealType               String   // breakfast, lunch, dinner
+  servings               Int      @default(1) // Manual serving override, defaults to 1 if not set
+  manualServingOverride  Boolean  @default(false) // Flag to indicate if servings is a manual override
 
   @@unique([mealPlanId, dayOfWeek, mealType])
   @@map("meal_plan_items")

@@ -381,3 +381,228 @@ export const generateShoppingList = asyncHandler(async (req: AuthenticatedReques
     weekStartDate: mealPlan.weekStartDate
   });
 });
+
+// Manual serving override endpoints
+export const setManualServingOverride = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    throw createError('User not authenticated', 401);
+  }
+
+  const { mealPlanId, recipeId } = req.params;
+  const { servings, manualServingOverride } = req.body;
+
+  if (!mealPlanId || !recipeId) {
+    throw createError('Meal plan ID and recipe ID are required', 400);
+  }
+
+  if (typeof servings !== 'number' || servings <= 0) {
+    throw createError('Servings must be a positive number', 400);
+  }
+
+  if (servings > 50) {
+    throw createError('Servings cannot exceed 50', 400);
+  }
+
+  // Verify meal plan belongs to user
+  const mealPlan = await prisma.mealPlan.findFirst({
+    where: { 
+      id: mealPlanId,
+      userId: req.user.userId 
+    }
+  });
+
+  if (!mealPlan) {
+    throw createError('Meal plan not found', 404);
+  }
+
+  // Find the meal plan item to update
+  const mealPlanItem = await prisma.mealPlanItem.findFirst({
+    where: {
+      mealPlanId,
+      recipeId
+    }
+  });
+
+  if (!mealPlanItem) {
+    throw createError('Recipe not found in meal plan', 404);
+  }
+
+  // Update the meal plan item
+  const updatedItem = await prisma.mealPlanItem.update({
+    where: { id: mealPlanItem.id },
+    data: {
+      servings,
+      manualServingOverride: manualServingOverride === true
+    },
+    include: {
+      recipe: true
+    }
+  });
+
+  res.json({
+    message: 'Manual serving override updated successfully',
+    item: updatedItem
+  });
+});
+
+export const getMealPlanItem = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    throw createError('User not authenticated', 401);
+  }
+
+  const { mealPlanId, recipeId } = req.params;
+
+  if (!mealPlanId || !recipeId) {
+    throw createError('Meal plan ID and recipe ID are required', 400);
+  }
+
+  // Verify meal plan belongs to user
+  const mealPlan = await prisma.mealPlan.findFirst({
+    where: { 
+      id: mealPlanId,
+      userId: req.user.userId 
+    }
+  });
+
+  if (!mealPlan) {
+    throw createError('Meal plan not found', 404);
+  }
+
+  // Find the meal plan item
+  const mealPlanItem = await prisma.mealPlanItem.findFirst({
+    where: {
+      mealPlanId,
+      recipeId
+    },
+    include: {
+      recipe: true
+    }
+  });
+
+  if (!mealPlanItem) {
+    throw createError('Recipe not found in meal plan', 404);
+  }
+
+  res.json(mealPlanItem);
+});
+
+export const getEffectiveServings = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    throw createError('User not authenticated', 401);
+  }
+
+  const { mealPlanId, recipeId } = req.params;
+
+  if (!mealPlanId || !recipeId) {
+    throw createError('Meal plan ID and recipe ID are required', 400);
+  }
+
+  // Get meal plan with user info for household size
+  const mealPlan = await prisma.mealPlan.findFirst({
+    where: { 
+      id: mealPlanId,
+      userId: req.user.userId 
+    },
+    include: {
+      user: true
+    }
+  });
+
+  if (!mealPlan) {
+    throw createError('Meal plan not found', 404);
+  }
+
+  // Find the meal plan item
+  const mealPlanItem = await prisma.mealPlanItem.findFirst({
+    where: {
+      mealPlanId,
+      recipeId
+    },
+    include: {
+      recipe: true
+    }
+  });
+
+  if (!mealPlanItem) {
+    throw createError('Recipe not found in meal plan', 404);
+  }
+
+  // Calculate effective servings
+  let effectiveServings: number;
+  
+  if (mealPlanItem.manualServingOverride) {
+    // Use manual override
+    effectiveServings = mealPlanItem.servings;
+  } else {
+    // Use household size
+    effectiveServings = mealPlan.user.householdSize;
+  }
+
+  res.json({
+    effectiveServings,
+    hasManualOverride: mealPlanItem.manualServingOverride,
+    manualServings: mealPlanItem.manualServingOverride ? mealPlanItem.servings : undefined,
+    householdSize: mealPlan.user.householdSize,
+    originalRecipeServings: mealPlanItem.recipe.servings
+  });
+});
+
+export const batchUpdateServingOverrides = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) {
+    throw createError('User not authenticated', 401);
+  }
+
+  const { mealPlanId } = req.params;
+  const { overrides } = req.body;
+
+  if (!mealPlanId) {
+    throw createError('Meal plan ID is required', 400);
+  }
+
+  if (!Array.isArray(overrides) || overrides.length === 0) {
+    throw createError('Overrides array is required', 400);
+  }
+
+  // Validate all overrides
+  for (const override of overrides) {
+    if (!override.recipeId || typeof override.servings !== 'number' || override.servings <= 0) {
+      throw createError('Each override must have a valid recipeId and positive servings', 400);
+    }
+    if (override.servings > 50) {
+      throw createError('Servings cannot exceed 50', 400);
+    }
+  }
+
+  // Verify meal plan belongs to user
+  const mealPlan = await prisma.mealPlan.findFirst({
+    where: { 
+      id: mealPlanId,
+      userId: req.user.userId 
+    }
+  });
+
+  if (!mealPlan) {
+    throw createError('Meal plan not found', 404);
+  }
+
+  // Update all overrides in a transaction
+  const updatedItems = await prisma.$transaction(
+    overrides.map(override => 
+      prisma.mealPlanItem.updateMany({
+        where: {
+          mealPlanId,
+          recipeId: override.recipeId
+        },
+        data: {
+          servings: override.servings,
+          manualServingOverride: override.manualServingOverride === true
+        }
+      })
+    )
+  );
+
+  res.json({
+    message: 'Batch serving overrides updated successfully',
+    updatedCount: updatedItems.reduce((sum, result) => sum + result.count, 0)
+  });
+});

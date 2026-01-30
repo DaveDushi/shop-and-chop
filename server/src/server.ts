@@ -15,8 +15,14 @@ import userRoutes from './routes/users';
 // Load environment variables
 dotenv.config();
 
+// Ensure PORT is set correctly (override any system-level PORT=8000)
+if (process.env.PORT === '8000') {
+  process.env.PORT = '3001';
+}
+
 const app = express();
-const PORT = process.env.PORT || 3001;
+
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Security middleware
 app.use(helmet());
@@ -30,8 +36,10 @@ app.use(cors({
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  max: process.env['NODE_ENV'] === 'production' ? 100 : 1000, // More lenient for development
+  message: 'Too many requests from this IP, please try again later.',
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 app.use('/api/', limiter);
 

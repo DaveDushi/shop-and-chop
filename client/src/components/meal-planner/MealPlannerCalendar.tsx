@@ -5,6 +5,7 @@ import { useMealPlannerCalendar } from '../../hooks/useMealPlannerCalendar';
 import { useKeyboardShortcuts } from '../../hooks/useKeyboardShortcuts';
 import { useAccessibleDragDrop } from '../../hooks/useAccessibleDragDrop';
 import { useShoppingList } from '../../hooks/useShoppingList';
+import { useHouseholdSize } from '../../contexts/HouseholdSizeContext';
 import { CalendarHeader } from './CalendarHeader';
 import { CalendarGrid } from './CalendarGrid';
 import { DragLayer } from './DragLayer';
@@ -22,6 +23,8 @@ interface MealPlannerCalendarProps {
 export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
   onMealPlanChange,
 }) => {
+  const { householdSize } = useHouseholdSize();
+  
   // Recipe detail modal state
   const [selectedRecipe, setSelectedRecipe] = React.useState<Recipe | null>(null);
   const [selectedMeal, setSelectedMeal] = React.useState<any | null>(null); // Store the meal that was clicked
@@ -37,7 +40,7 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
     clearError: clearShoppingListError,
     saveToShoppingList
   } = useShoppingList({ 
-    householdSize: 2,
+    householdSize,
     enableOfflineStorage: false, // Disable offline storage to prevent duplicates
     enableAutoSync: false
   });
@@ -108,7 +111,7 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
     if (mealPlan && onMealPlanChange) {
       onMealPlanChange(mealPlan);
     }
-  }, [mealPlan, onMealPlanChange]);
+  }, [mealPlan]); // Remove onMealPlanChange from dependencies to prevent infinite loop
 
   // Announce meal plan changes to screen readers
   React.useEffect(() => {
@@ -136,8 +139,14 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
   };
 
   // Handle serving size changes
-  const handleServingChange = (dayIndex: number, mealType: MealType, newServings: number) => {
-    updateServings(dayIndex, mealType, newServings);
+  const handleServingChange = (dayIndex: number, mealType: MealType, newServings: number, isManualOverride?: boolean) => {
+    if (isManualOverride) {
+      // Handle manual override serving changes
+      updateServings(dayIndex, mealType, newServings);
+    } else {
+      // Handle regular serving changes
+      updateServings(dayIndex, mealType, newServings);
+    }
   };
 
   // Handle closing recipe detail modal
@@ -276,6 +285,7 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
               onDuplicateDay={duplicateDay}
               isLoading={isLoading}
               mealsInShoppingList={mealsInShoppingList}
+              useManualOverride={true}
             />
           </div>
         </div>
@@ -289,6 +299,8 @@ export const MealPlannerCalendar: React.FC<MealPlannerCalendarProps> = ({
           onClose={handleCloseRecipeDetailModal}
           recipe={selectedRecipe}
           meal={selectedMeal}
+          enableScaling={true}
+          householdSize={householdSize}
         />
 
         {/* Shopping List Modal */}

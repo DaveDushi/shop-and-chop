@@ -3,6 +3,7 @@ import { format, isThisWeek } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar, ShoppingCart } from 'lucide-react';
 import { UndoRedoControls } from './UndoRedoControls';
 import { SaveStatusIndicator } from '../common/SaveStatusIndicator';
+import { ScalingStatusIndicator } from '../common/ScalingStatusIndicator';
 import { AutoSaveStatus } from '../../hooks/useAutoSave';
 
 interface CalendarHeaderProps {
@@ -138,8 +139,12 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
             </div>
           )}
 
-          {/* Save Status */}
-          <div className="hidden sm:block">
+          {/* Save Status and Scaling Status */}
+          <div className="hidden sm:flex items-center space-x-3">
+            {/* Scaling Status */}
+            <ScalingStatusIndicator compact={true} />
+            
+            {/* Save Status */}
             {isLoading ? (
               <div className="flex items-center space-x-2 text-xs md:text-sm text-gray-600">
                 <div className="animate-spin rounded-full h-3 w-3 md:h-4 md:w-4 border-b-2 border-blue-600"></div>

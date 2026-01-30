@@ -107,6 +107,7 @@ export const ShoppingListPage: React.FC = () => {
         onExport={handleExport}
         onShare={'share' in navigator ? handleShare : undefined}
         showRecipes={true}
+        showScaling={true} // Enable scaling information display
         isOffline={isOffline}
       />
     );

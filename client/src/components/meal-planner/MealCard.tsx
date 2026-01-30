@@ -3,26 +3,35 @@ import { useDrag } from 'react-dnd';
 import { MealSlot, MealType } from '../../types/MealPlan.types';
 import { X, ChefHat, Users, Plus, Minus, ShoppingCart } from 'lucide-react';
 import { DragItemTypes, MealDragItem, DragCollectedProps } from '../../types/DragDrop.types';
+import { ManualServingOverride } from './ManualServingOverride';
+import { ScalingIndicator } from '../common/ScalingIndicator';
+import { useHouseholdSize } from '../../contexts/HouseholdSizeContext';
 
 interface MealCardProps {
   meal: MealSlot;
   dayIndex?: number;
   mealType?: MealType;
+  mealPlanId?: string;
   onRemove: (e?: React.MouseEvent) => void;
   onClick: () => void;
-  onServingChange?: (newServings: number) => void;
+  onServingChange?: (newServings: number, isManualOverride?: boolean) => void;
   isDraggable?: boolean;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
   compact?: boolean;
   isInShoppingList?: boolean;
+  useManualOverride?: boolean;
+  // Scaling props
+  enableScaling?: boolean;
+  householdSize?: number;
 }
 
 export const MealCard: React.FC<MealCardProps> = ({
   meal,
   dayIndex,
   mealType,
+  mealPlanId,
   onRemove,
   onClick,
   onServingChange,
@@ -32,8 +41,15 @@ export const MealCard: React.FC<MealCardProps> = ({
   onDuplicateDay,
   compact = false,
   isInShoppingList = false,
+  useManualOverride = false,
+  enableScaling = true, // Enable scaling by default
+  householdSize: propHouseholdSize,
 }) => {
   const { recipe, servings } = meal;
+  
+  // Get household size from context if not provided as prop
+  const { householdSize: contextHouseholdSize } = useHouseholdSize();
+  const effectiveHouseholdSize = propHouseholdSize || contextHouseholdSize;
 
   // Set up drag functionality for meal-to-meal operations
   const [{ isDragging, canDrag }, dragRef] = useDrag<
@@ -156,10 +172,33 @@ export const MealCard: React.FC<MealCardProps> = ({
               {recipe.name}
             </h3>
             
-            {/* Compact Serving Adjustment Controls */}
+            {/* Scaling Indicator */}
+            {enableScaling && (
+              <div className="mb-2">
+                <ScalingIndicator
+                  originalServings={recipe.servings || 1}
+                  currentServings={servings}
+                  scalingFactor={servings / (recipe.servings || 1)}
+                  scalingSource={meal.manualServingOverride ? 'manual' : 'household'}
+                  compact={true}
+                />
+              </div>
+            )}
+            
+            {/* Serving Controls */}
             <div className="flex items-center justify-between">
               <div className="flex-1"></div>
-              {onServingChange ? (
+              {onServingChange && useManualOverride && mealPlanId ? (
+                <ManualServingOverride
+                  mealPlanId={mealPlanId}
+                  recipeId={recipe.id}
+                  currentServings={servings}
+                  originalServings={recipe.servings}
+                  hasManualOverride={meal.manualServingOverride}
+                  onServingChange={(newServings, isManualOverride) => onServingChange(newServings, isManualOverride)}
+                  compact={true}
+                />
+              ) : onServingChange ? (
                 <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
                   <button
                     onClick={(e) => handleServingChange(-1, e)}
@@ -220,9 +259,32 @@ export const MealCard: React.FC<MealCardProps> = ({
               {recipe.name}
             </h3>
             
-            {/* Compact Serving Adjustment Controls */}
+            {/* Scaling Indicator */}
+            {enableScaling && (
+              <div className="mb-2">
+                <ScalingIndicator
+                  originalServings={recipe.servings || 1}
+                  currentServings={servings}
+                  scalingFactor={servings / (recipe.servings || 1)}
+                  scalingSource={meal.manualServingOverride ? 'manual' : 'household'}
+                  compact={true}
+                />
+              </div>
+            )}
+            
+            {/* Serving Controls */}
             <div className="flex items-center">
-              {onServingChange ? (
+              {onServingChange && useManualOverride && mealPlanId ? (
+                <ManualServingOverride
+                  mealPlanId={mealPlanId}
+                  recipeId={recipe.id}
+                  currentServings={servings}
+                  originalServings={recipe.servings}
+                  hasManualOverride={meal.manualServingOverride}
+                  onServingChange={(newServings, isManualOverride) => onServingChange(newServings, isManualOverride)}
+                  compact={true}
+                />
+              ) : onServingChange ? (
                 <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
                   <button
                     onClick={(e) => handleServingChange(-1, e)}
@@ -333,10 +395,33 @@ export const MealCard: React.FC<MealCardProps> = ({
             {recipe.name}
           </h3>
 
-          {/* Compact Serving Adjustment Controls */}
+          {/* Scaling Indicator */}
+          {enableScaling && (
+            <div className="mb-2">
+              <ScalingIndicator
+                originalServings={recipe.servings || 1}
+                currentServings={servings}
+                scalingFactor={servings / (recipe.servings || 1)}
+                scalingSource={meal.manualServingOverride ? 'manual' : 'household'}
+                compact={true}
+              />
+            </div>
+          )}
+
+          {/* Serving Controls */}
           <div className="flex items-center justify-between">
             <div className="flex-1"></div>
-            {onServingChange ? (
+            {onServingChange && useManualOverride && mealPlanId ? (
+              <ManualServingOverride
+                mealPlanId={mealPlanId}
+                recipeId={recipe.id}
+                currentServings={servings}
+                originalServings={recipe.servings}
+                hasManualOverride={meal.manualServingOverride}
+                onServingChange={(newServings, isManualOverride) => onServingChange(newServings, isManualOverride)}
+                compact={true}
+              />
+            ) : onServingChange ? (
               <div className="flex items-center space-x-2 bg-gray-100 rounded-full px-3 py-2">
                 <button
                   onClick={(e) => handleServingChange(-1, e)}

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -7,6 +7,24 @@ import { RecipeCard } from './RecipeCard';
 import { MealSlot } from './MealSlot';
 import { Recipe } from '../../types/Recipe.types';
 import { MealType } from '../../types/MealPlan.types';
+import { HouseholdSizeProvider } from '../../contexts/HouseholdSizeContext';
+
+// Mock the auth hook
+vi.mock('../../hooks/useAuth', () => ({
+  useAuth: () => ({
+    user: { id: 'test-user-id', householdSize: 4 },
+    isAuthenticated: true,
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+// Mock userPreferencesService
+vi.mock('../../services/userPreferencesService', () => ({
+  userPreferencesService: {
+    getCurrentUserHouseholdSize: vi.fn(() => Promise.resolve(4)),
+    validateHouseholdSize: vi.fn(() => ({ isValid: true })),
+  },
+}));
 
 // Mock recipe data
 const mockRecipe: Recipe = {
@@ -37,9 +55,11 @@ const DnDTestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   return (
     <QueryClientProvider client={queryClient}>
-      <DndProvider backend={HTML5Backend}>
-        {children}
-      </DndProvider>
+      <HouseholdSizeProvider>
+        <DndProvider backend={HTML5Backend}>
+          {children}
+        </DndProvider>
+      </HouseholdSizeProvider>
     </QueryClientProvider>
   );
 };

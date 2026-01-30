@@ -7,15 +7,18 @@ export interface MealSlot {
   recipeId: string;
   recipe: Recipe;
   servings: number;
+  manualServingOverride?: boolean; // Flag indicating if servings is a manual override
   notes?: string;
   scheduledFor: Date;
   mealType: MealType;
+  updatedAt?: Date;
 }
 
 export interface MealPlan {
   id: string;
   userId: string;
   weekStartDate: Date;
+  householdSize?: number;
   meals: {
     [dayOfWeek: string]: {
       breakfast?: MealSlot;

@@ -11,7 +11,8 @@ import {
   User, 
   LogOut,
   Menu,
-  X
+  X,
+  Settings as SettingsIcon
 } from 'lucide-react';
 import { useState } from 'react';
 import { OfflineBanner } from './OfflineBanner';
@@ -43,6 +44,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Meal Planner', href: '/meal-planner', icon: Calendar },
     { name: 'Recipes', href: '/recipes', icon: BookOpen },
     { name: 'Shopping List', href: '/shopping-list', icon: ShoppingCart },
+    { name: 'Settings', href: '/settings', icon: SettingsIcon },
   ];
 
   const isActive = (path: string) => {

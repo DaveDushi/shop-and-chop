@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { ArrowLeft, Download, Share2, CheckCircle, Clock, WifiOff } from 'lucide-react';
 import { ShoppingList } from '../../types/ShoppingList.types';
 import { CategorySection } from './CategorySection';
+import { ScalingInfo } from './ScalingInfo';
 import { OfflineBanner } from '../common/OfflineBanner';
 import { useOfflineStatus } from '../../hooks/useOfflineStatus';
 
@@ -14,6 +15,7 @@ interface ShoppingListViewProps {
   onExport?: () => void;
   onShare?: () => void;
   showRecipes?: boolean;
+  showScaling?: boolean; // New prop to show scaling information
   isOffline?: boolean;
 }
 
@@ -26,6 +28,7 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({
   onExport,
   onShare,
   showRecipes = false,
+  showScaling = true, // Show scaling by default
   isOffline = false
 }) => {
   const { isOnline } = useOfflineStatus();
@@ -182,6 +185,11 @@ export const ShoppingListView: React.FC<ShoppingListViewProps> = ({
 
       {/* Shopping List Content */}
       <div className="max-w-4xl mx-auto px-4 py-6">
+        {/* Scaling Information */}
+        {showScaling && (
+          <ScalingInfo className="mb-6" />
+        )}
+
         {sortedCategories.length === 0 ? (
           <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
             <p className="text-gray-500">No items in this shopping list</p>

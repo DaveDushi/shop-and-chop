@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { HouseholdSizeSettings } from '../components/common/HouseholdSizeSettings';
 import { 
   Calendar, 
   BookOpen, 
@@ -38,12 +39,6 @@ export const Home: React.FC = () => {
     }
   ];
 
-  const stats = [
-    { icon: Clock, label: 'Time Saved', value: '2+ hours/week' },
-    { icon: Users, label: 'Household Size', value: user?.householdSize || 2 },
-    { icon: ChefHat, label: 'Recipes Available', value: '100+' }
-  ];
-
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -58,24 +53,47 @@ export const Home: React.FC = () => {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div key={stat.label} className="card">
-              <div className="card-content">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-primary-100 rounded-lg">
-                    <Icon className="w-6 h-6 text-primary-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                    <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                  </div>
-                </div>
+        {/* Time Saved Stat */}
+        <div className="card">
+          <div className="card-content">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <Clock className="w-6 h-6 text-primary-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Time Saved</p>
+                <p className="text-2xl font-bold text-gray-900">2+ hours/week</p>
               </div>
             </div>
-          );
-        })}
+          </div>
+        </div>
+
+        {/* Household Size Settings */}
+        <div className="card">
+          <div className="card-content">
+            <HouseholdSizeSettings 
+              compact={true}
+              onUpdate={(newSize) => {
+                console.log('Household size updated from Home page:', newSize);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Recipes Available Stat */}
+        <div className="card">
+          <div className="card-content">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary-100 rounded-lg">
+                <ChefHat className="w-6 h-6 text-primary-600" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-600">Recipes Available</p>
+                <p className="text-2xl font-bold text-gray-900">100+</p>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Quick Actions */}

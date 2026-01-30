@@ -24,16 +24,90 @@ interface ShoppingList {
   [category: string]: ShoppingListItem[];
 }
 
+interface MealPlanItem {
+  servings: number;
+  recipe: {
+    title: string;
+    servings: number;
+    ingredients: {
+      name: string;
+      quantity: string;
+      unit: string;
+      category: string;
+    }[];
+  };
+  manualServingOverride?: boolean;
+}
+
+interface ShoppingListItem {
+  name: string;
+  quantity: string;
+  unit: string;
+  category: string;
+  recipes: string[];
+}
+
+interface ShoppingList {
+  [category: string]: ShoppingListItem[];
+}
+
+/**
+ * Calculate scaling factor for recipe conversion
+ * @param originalServings - Original recipe serving size
+ * @param targetServings - Target serving size
+ * @returns Scaling factor clamped to safe limits
+ */
+const calculateScalingFactor = (originalServings: number, targetServings: number): number => {
+  // Handle edge cases for original servings
+  const safeOriginalServings = originalServings > 0 ? originalServings : 1;
+  
+  // Calculate raw scaling factor
+  const rawFactor = targetServings / safeOriginalServings;
+  
+  // Clamp to safe limits to prevent unrealistic scaling
+  return Math.max(0.125, Math.min(20, rawFactor));
+};
+
+/**
+ * Determine effective serving size based on household size and manual overrides
+ * @param recipe - Recipe to scale
+ * @param householdSize - User's household size
+ * @param manualOverride - Optional manual serving override
+ * @returns Effective serving size to use for scaling
+ */
+const getEffectiveServingSize = (
+  recipe: { servings: number }, 
+  householdSize: number, 
+  manualOverride?: number
+): number => {
+  // Manual override takes precedence over household size
+  if (manualOverride !== undefined && manualOverride > 0) {
+    return manualOverride;
+  }
+  
+  // Fall back to household size
+  return householdSize;
+};
+
 export const generateShoppingListFromMeals = (
   meals: MealPlanItem[], 
   householdSize: number = 2
 ): ShoppingList => {
   const consolidatedIngredients = new Map<string, ShoppingListItem>();
 
-  // Process each meal
+  // Process each meal using scaling logic
   meals.forEach(meal => {
-    const { recipe, servings } = meal;
-    const scalingFactor = (servings * householdSize) / recipe.servings;
+    const { recipe, servings, manualServingOverride } = meal;
+    
+    // Determine effective serving size
+    const effectiveServings = getEffectiveServingSize(
+      recipe, 
+      householdSize, 
+      manualServingOverride ? servings : undefined
+    );
+    
+    // Calculate scaling factor
+    const scalingFactor = calculateScalingFactor(recipe.servings, effectiveServings);
 
     recipe.ingredients.forEach(ingredient => {
       const key = `${ingredient.name.toLowerCase()}-${ingredient.unit.toLowerCase()}`;

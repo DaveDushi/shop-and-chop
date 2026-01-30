@@ -6,3 +6,4 @@ export { ShoppingListView } from './ShoppingListView';
 export { ShoppingListCard } from './ShoppingListCard';
 export { ShoppingListGrid } from './ShoppingListGrid';
 export { ShoppingListPage } from './ShoppingListPage';
+export { ScalingInfo } from './ScalingInfo';

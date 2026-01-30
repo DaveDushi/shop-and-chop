@@ -13,13 +13,14 @@ interface CalendarGridProps {
   onMealRemove: (dayIndex: number, mealType: MealType) => void;
   onMealSlotClick: (dayIndex: number, mealType: MealType) => void;
   onMealCardClick?: (recipe: Recipe, meal?: MealSlot) => void;
-  onServingChange?: (dayIndex: number, mealType: MealType, newServings: number) => void;
+  onServingChange?: (dayIndex: number, mealType: MealType, newServings: number, isManualOverride?: boolean) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onClearDay?: (dayIndex: number) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
   isLoading?: boolean;
   mealsInShoppingList?: Set<string>;
+  useManualOverride?: boolean;
 }
 
 const DAYS_OF_WEEK = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
@@ -39,6 +40,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
   onDuplicateDay,
   isLoading = false,
   mealsInShoppingList = new Set(),
+  useManualOverride = false,
 }) => {
   if (isLoading) {
     return (
@@ -137,11 +139,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 <div className="p-3 xs:p-4 space-y-3 xs:space-y-4">
                   {(['breakfast', 'lunch', 'dinner'] as const).map((mealType) => (
                     <MealSlotComponent
-                      key={`${dayKey}-${mealType}`}
+                      key={`mobile-${dayKey}-${mealType}`}
                       dayIndex={dayIndex}
                       mealType={mealType}
                       mealLabel={mealType}
                       meal={dayMeals[mealType]}
+                      mealPlanId={mealPlan?.id}
                       onMealAssign={onMealAssign}
                       onMealRemove={onMealRemove}
                       onMealSlotClick={onMealSlotClick}
@@ -152,6 +155,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                       onDuplicateDay={onDuplicateDay}
                       weekStartDate={weekStartDate}
                       isInShoppingList={dayMeals[mealType] ? mealsInShoppingList.has(dayMeals[mealType].id) : false}
+                      useManualOverride={useManualOverride}
                     />
                   ))}
                 </div>
@@ -207,11 +211,12 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 <div className="p-3 space-y-3">
                   {(['breakfast', 'lunch', 'dinner'] as const).map((mealType) => (
                     <MealSlotComponent
-                      key={`${dayKey}-${mealType}`}
+                      key={`tablet-${dayKey}-${mealType}`}
                       dayIndex={dayIndex}
                       mealType={mealType}
                       mealLabel={mealType}
                       meal={dayMeals[mealType]}
+                      mealPlanId={mealPlan?.id}
                       onMealAssign={onMealAssign}
                       onMealRemove={onMealRemove}
                       onMealSlotClick={onMealSlotClick}
@@ -222,6 +227,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                       onDuplicateDay={onDuplicateDay}
                       weekStartDate={weekStartDate}
                       isInShoppingList={dayMeals[mealType] ? mealsInShoppingList.has(dayMeals[mealType].id) : false}
+                      useManualOverride={useManualOverride}
                     />
                   ))}
                 </div>
@@ -241,6 +247,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 dayIndex={dayIndex}
                 dayKey={dayKey}
                 meals={dayMeals}
+                mealPlanId={mealPlan?.id}
                 onMealAssign={onMealAssign}
                 onMealRemove={onMealRemove}
                 onMealSlotClick={onMealSlotClick}
@@ -252,6 +259,7 @@ export const CalendarGrid: React.FC<CalendarGridProps> = ({
                 onDuplicateDay={onDuplicateDay}
                 weekStartDate={weekStartDate}
                 mealsInShoppingList={mealsInShoppingList}
+                useManualOverride={useManualOverride}
               />
             );
           })}

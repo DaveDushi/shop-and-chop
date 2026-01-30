@@ -3,7 +3,7 @@ import { MealPlan, CreateMealPlanData, MealPlanDetailResponse } from '../types/M
 
 // Retry configuration
 const RETRY_CONFIG = {
-  maxRetries: 3,
+  maxRetries: process.env.NODE_ENV === 'production' ? 3 : 1, // Fewer retries in development
   baseDelay: 1000, // 1 second
   maxDelay: 5000, // 5 seconds
   backoffFactor: 2,

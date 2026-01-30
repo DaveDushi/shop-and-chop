@@ -1,14 +1,22 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Clock, Users, ChefHat, Star } from 'lucide-react';
 import { Recipe } from '../../types/Recipe.types';
 import { MealSlot } from '../../types/MealPlan.types';
+import { ScaledRecipe } from '../../types/Scaling.types';
 import { Modal } from '../common/Modal';
+import { ScalingInfoDisplay, IngredientQuantityDisplay } from '../common';
+import { scalingService } from '../../services/scalingService';
+import { userPreferencesService } from '../../services/userPreferencesService';
 
 interface RecipeDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   recipe: Recipe | null;
   meal?: MealSlot | null; // Optional meal information for serving size
+  /** Whether to show scaling features */
+  enableScaling?: boolean;
+  /** Current household size for scaling calculations */
+  householdSize?: number;
 }
 
 export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
@@ -16,11 +24,42 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
   onClose,
   recipe,
   meal,
+  enableScaling = false,
+  householdSize = 2,
 }) => {
+  const [showScaledQuantities, setShowScaledQuantities] = useState(true);
+
+  // Calculate scaled recipe if scaling is enabled
+  const scaledRecipe: ScaledRecipe | null = useMemo(() => {
+    if (!recipe || !enableScaling) return null;
+
+    // Determine the manual override value based on the boolean flag and servings
+    const manualOverrideValue = meal?.manualServingOverride ? meal.servings : undefined;
+
+    const effectiveServings = scalingService.getEffectiveServingSize(
+      recipe,
+      householdSize,
+      manualOverrideValue
+    );
+    
+    const scalingFactor = scalingService.calculateScalingFactor(
+      recipe.servings || 1,
+      effectiveServings
+    );
+
+    const scaled = scalingService.scaleRecipe(recipe, scalingFactor);
+    
+    // Set scaling source and manual override info
+    scaled.scalingSource = meal?.manualServingOverride ? 'manual' : 'household';
+    scaled.manualServingOverride = manualOverrideValue;
+    
+    return scaled;
+  }, [recipe, enableScaling, householdSize, meal?.manualServingOverride, meal?.servings]);
+
   if (!recipe) return null;
 
   // Use meal's serving size if available, otherwise use recipe's default
-  const displayServings = meal?.servings ?? recipe.servings;
+  const displayServings = scaledRecipe?.effectiveServings ?? meal?.servings ?? recipe.servings;
 
   const getTotalTime = () => {
     const prep = recipe.prepTime || 0;
@@ -90,7 +129,15 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
                 </div>
                 <div className="text-sm text-gray-600">Servings</div>
                 <div className="font-semibold text-gray-900">{displayServings}</div>
-                {meal && meal.servings !== recipe.servings && (
+                {enableScaling && scaledRecipe && (
+                  <div className="mt-2">
+                    <ScalingInfoDisplay
+                      scaledRecipe={scaledRecipe}
+                      layout="compact"
+                    />
+                  </div>
+                )}
+                {!enableScaling && meal && meal.servings !== recipe.servings && (
                   <div className="text-xs text-blue-600 mt-1">
                     (Recipe default: {recipe.servings})
                   </div>
@@ -220,22 +267,52 @@ export const RecipeDetailModal: React.FC<RecipeDetailModalProps> = ({
 
           {/* Ingredients */}
           <div>
-            <h3 className="font-semibold text-gray-900 text-xl mb-4">Ingredients</h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-gray-900 text-xl">Ingredients</h3>
+              {enableScaling && scaledRecipe && (
+                <ScalingInfoDisplay
+                  scaledRecipe={scaledRecipe}
+                  showQuantityToggle={true}
+                  showScaled={showScaledQuantities}
+                  onQuantityToggle={setShowScaledQuantities}
+                  layout="compact"
+                />
+              )}
+            </div>
+            
             {recipe.ingredients && recipe.ingredients.length > 0 ? (
               <div className="bg-gray-50 rounded-lg p-4">
-                <ul className="space-y-2">
-                  {recipe.ingredients.map((ingredient, index) => (
-                    <li key={ingredient.id || index} className="flex items-start">
-                      <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3"></span>
-                      <span className="text-gray-900">
-                        <span className="font-medium">
-                          {ingredient.quantity} {ingredient.unit}
-                        </span>
-                        {' '}
-                        <span>{ingredient.name}</span>
-                      </span>
-                    </li>
-                  ))}
+                <ul className="space-y-3">
+                  {recipe.ingredients.map((ingredient, index) => {
+                    const scaledIngredient = scaledRecipe?.scaledIngredients.find(
+                      si => si.id === ingredient.id
+                    );
+                    
+                    return (
+                      <li key={ingredient.id || index} className="flex items-start">
+                        <span className="flex-shrink-0 w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3"></span>
+                        <div className="flex-1">
+                          {enableScaling && scaledIngredient ? (
+                            <IngredientQuantityDisplay
+                              ingredient={ingredient}
+                              scaledIngredient={scaledIngredient}
+                              showScaled={showScaledQuantities}
+                              showScalingIndicator={false}
+                              compact={true}
+                            />
+                          ) : (
+                            <span className="text-gray-900">
+                              <span className="font-medium">
+                                {ingredient.quantity} {ingredient.unit}
+                              </span>
+                              {' '}
+                              <span>{ingredient.name}</span>
+                            </span>
+                          )}
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               </div>
             ) : (

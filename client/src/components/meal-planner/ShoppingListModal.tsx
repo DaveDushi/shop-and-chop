@@ -1,10 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { ShoppingCart, Download, Check, AlertCircle, Loader2, WifiOff, Clock } from 'lucide-react';
+import { ShoppingCart, Download, Check, AlertCircle, Loader2, WifiOff, Clock, Scale } from 'lucide-react';
 import { ShoppingList, ShoppingListItem } from '../../types/ShoppingList.types';
 import { OfflineShoppingListEntry, OfflineShoppingListItem } from '../../types/OfflineStorage.types';
 import { ShoppingListService } from '../../services/shoppingListService';
 import { Modal } from '../common/Modal';
 import { OfflineBanner } from '../common/OfflineBanner';
+import { QuantityToggle } from '../common/QuantityToggle';
 import { useOfflineStatus } from '../../hooks/useOfflineStatus';
 
 interface ShoppingListModalProps {
@@ -19,6 +20,9 @@ interface ShoppingListModalProps {
   offlineEntry?: OfflineShoppingListEntry | null;
   enableOfflineMode?: boolean;
   onOfflineItemToggle?: (shoppingListId: string, category: string, itemId: string, checked: boolean) => Promise<void>;
+  // Scaling-specific props
+  enableScaling?: boolean;
+  hasScaledItems?: boolean;
 }
 
 export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
@@ -31,12 +35,15 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
   onSaveToShoppingList,
   offlineEntry,
   enableOfflineMode = false,
-  onOfflineItemToggle
+  onOfflineItemToggle,
+  enableScaling = false,
+  hasScaledItems = false,
 }) => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isUpdatingItem, setIsUpdatingItem] = useState<string | null>(null);
+  const [showOriginalQuantities, setShowOriginalQuantities] = useState(false);
   
   // Use offline status hook for connection monitoring
   const { 
@@ -205,11 +212,29 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
                 {pendingOperations > 0 && <Clock className="w-4 h-4 text-yellow-500" />}
               </div>
             )}
+            {enableScaling && hasScaledItems && (
+              <div className="flex items-center gap-1">
+                <Scale className="w-4 h-4 text-blue-500" />
+                <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded-full font-medium">
+                  Scaled
+                </span>
+              </div>
+            )}
           </div>
           {displayShoppingList && (
-            <p className="text-sm text-gray-600">
-              {totalItems} items across {totalCategories} categories
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                {totalItems} items across {totalCategories} categories
+              </p>
+              {enableScaling && hasScaledItems && (
+                <QuantityToggle
+                  showScaled={!showOriginalQuantities}
+                  onToggle={(showScaled) => setShowOriginalQuantities(!showScaled)}
+                  hasScaling={hasScaledItems}
+                  compact={true}
+                />
+              )}
+            </div>
           )}
           {enableOfflineMode && offlineEntry && (
             <p className="text-xs text-gray-500 mt-1">
@@ -290,6 +315,8 @@ export const ShoppingListModal: React.FC<ShoppingListModalProps> = ({
                     onToggle={handleOfflineItemToggle}
                     isUpdating={isUpdatingItem === (item as any).id}
                     offlineEntry={offlineEntry}
+                    showOriginalQuantities={showOriginalQuantities}
+                    enableScaling={enableScaling}
                   />
                 ))}
               </div>
@@ -308,6 +335,8 @@ interface ShoppingListItemRowProps {
   onToggle?: (category: string, itemId: string, currentChecked: boolean) => Promise<void>;
   isUpdating?: boolean;
   offlineEntry?: OfflineShoppingListEntry | null;
+  showOriginalQuantities?: boolean;
+  enableScaling?: boolean;
 }
 
 const ShoppingListItemRow: React.FC<ShoppingListItemRowProps> = ({ 
@@ -316,7 +345,9 @@ const ShoppingListItemRow: React.FC<ShoppingListItemRowProps> = ({
   enableOfflineMode = false,
   onToggle,
   isUpdating = false,
-  offlineEntry
+  offlineEntry,
+  showOriginalQuantities = false,
+  enableScaling = false,
 }) => {
   const handleToggle = useCallback(async () => {
     if (!enableOfflineMode || !onToggle) return;
@@ -376,6 +407,11 @@ const ShoppingListItemRow: React.FC<ShoppingListItemRowProps> = ({
                 }
               `}>
                 {item.quantity} {item.unit} {item.name}
+                {enableScaling && (item as any).scalingInfo && (
+                  <span className="ml-2 text-xs text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded-full">
+                    {showOriginalQuantities ? 'Original' : `${(item as any).scalingInfo.factor.toFixed(1)}× scaled`}
+                  </span>
+                )}
               </span>
               {item.recipes && item.recipes.length > 0 && (
                 <div className="mt-1">

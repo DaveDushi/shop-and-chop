@@ -82,6 +82,11 @@ export const useMealPlannerCalendar = () => {
   const isDirty = mealPlan.hasUnsavedChanges;
   const lastSaved = mealPlan.lastSaved;
 
+  // Handle serving size changes with manual override support
+  const handleUpdateServings = useCallback((dayIndex: number, mealType: MealType, servings: number, isManualOverride?: boolean) => {
+    mealPlan.updateServings(dayIndex, mealType, servings, isManualOverride);
+  }, [mealPlan]);
+
   return {
     // Calendar state and navigation
     currentWeek: calendarState.currentWeek,
@@ -102,7 +107,7 @@ export const useMealPlannerCalendar = () => {
     duplicateDay: handleDuplicateDay,
     duplicateWeek: handleDuplicateWeek,
     swapMeals: handleSwapMeals,
-    updateServings: mealPlan.updateServings,
+    updateServings: handleUpdateServings,
 
     // Undo/Redo functionality (if available from base hook)
     undo: mealPlan.undo,

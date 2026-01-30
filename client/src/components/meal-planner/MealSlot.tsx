@@ -7,26 +7,30 @@ import { RecipeSelectionModal } from './RecipeSelectionModal';
 import { Plus } from 'lucide-react';
 import { DragItemTypes, DragItem, DropCollectedProps, DropResult } from '../../types/DragDrop.types';
 import { format, addDays } from 'date-fns';
+import { useHouseholdSize } from '../../contexts/HouseholdSizeContext';
 
 interface MealSlotProps {
   dayIndex: number;
   mealType: MealType;
   meal?: MealSlotType;
+  mealPlanId?: string;
   onMealAssign: (recipe: Recipe) => void;
   onMealRemove: () => void;
   onMealCardClick?: (recipe: Recipe, meal?: MealSlotType) => void;
-  onServingChange?: (newServings: number) => void;
+  onServingChange?: (newServings: number, isManualOverride?: boolean) => void;
   onSwapMeals?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onCopyMeal?: (sourceDayIndex: number, sourceMealType: MealType, targetDayIndex: number, targetMealType: MealType) => void;
   onDuplicateDay?: (sourceDayIndex: number, targetDayIndex: number) => void;
   weekStartDate?: Date;
   isInShoppingList?: boolean;
+  useManualOverride?: boolean;
 }
 
 export const MealSlot: React.FC<MealSlotProps> = ({
   dayIndex,
   mealType,
   meal,
+  mealPlanId,
   onMealAssign,
   onMealRemove,
   onMealCardClick,
@@ -36,9 +40,13 @@ export const MealSlot: React.FC<MealSlotProps> = ({
   onDuplicateDay,
   weekStartDate,
   isInShoppingList = false,
+  useManualOverride = false,
 }) => {
   const [showRecipeModal, setShowRecipeModal] = useState(false);
   const slotRef = useRef<HTMLDivElement>(null);
+  
+  // Get household size for scaling
+  const { householdSize } = useHouseholdSize();
 
   // Make slot focusable and add keyboard event handling
   useEffect(() => {
@@ -227,6 +235,7 @@ export const MealSlot: React.FC<MealSlotProps> = ({
               meal={meal}
               dayIndex={dayIndex}
               mealType={mealType}
+              mealPlanId={mealPlanId}
               onRemove={handleRemove}
               onClick={handleMealCardClick}
               onServingChange={onServingChange}
@@ -236,6 +245,9 @@ export const MealSlot: React.FC<MealSlotProps> = ({
               onDuplicateDay={onDuplicateDay}
               compact={true}
               isInShoppingList={isInShoppingList}
+              useManualOverride={useManualOverride}
+              enableScaling={true}
+              householdSize={householdSize}
             />
           </div>
         ) : (
